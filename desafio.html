@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafios - PySpark Playground | Pon a Prueba tus Habilidades</title>
+    <meta name="description" content="3 desafios de PySpark para poner a prueba tus conocimientos. Resuelve problemas reales de procesamiento de datos.">
+    <meta name="keywords" content="pyspark desafios, exercicios pyspark, practicar pyspark, dataframes desafios">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/webp" href="apache_spark_logo_icon.webp">
+    <meta property="og:title" content="Desafios - PySpark Playground | Pon a Prueba tus Habilidades">
+    <meta property="og:description" content="3 desafios de PySpark para poner a prueba tus conocimientos.">
+    <meta name="twitter:card" content="summary">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --azul: #0a0a23; --naranja: #ff6b35; --naranja-claro: #ff8c5a; --amarillo: #f7c948; --verde: #00d4aa; --morado: #667eea; --morado-claro: #764ba2; --gris-claro: #f8f9fa; --gris-medio: #e9ecef; --texto: #333; --blanco: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gris-claro); color: var(--texto); height: 100vh; overflow: hidden; }
+        .header { background: var(--azul); color: var(--blanco); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+        .header-logo { font-size: 1.2rem; font-weight: bold; color: var(--morado); }
+        .header-steps { font-size: 0.9rem; opacity: 0.8; }
+        .header-buttons { display: flex; gap: 10px; }
+        .main-container { display: flex; height: calc(100vh - 50px); }
+        .instructions-panel { width: 40%; min-width: 300px; background: var(--blanco); border-right: 2px solid var(--gris-medio); display: flex; flex-direction: column; overflow: hidden; }
+        .instructions-header { padding: 15px 20px; border-bottom: 1px solid var(--gris-medio); background: var(--gris-claro); }
+        .instructions-header h2 { font-size: 1.1rem; color: var(--azul); }
+        .instructions-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .instructions-content h3 { color: var(--morado); margin: 15px 0 10px; font-size: 1rem; }
+        .instructions-content p { line-height: 1.6; margin-bottom: 10px; }
+        .instructions-content code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; }
+        .instructions-content pre { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 10px 0; }
+        .instructions-content pre code { background: none; padding: 0; color: inherit; }
+        .editor-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-header { padding: 10px 15px; background: #282c34; color: #abb2bf; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .editor-container { flex: 1; overflow: hidden; }
+        .output-panel { height: 220px; min-height: 150px; background: #1e1e1e; border-top: 2px solid #444; display: flex; flex-direction: column; }
+        .output-header { padding: 8px 15px; background: #252526; color: #ccc; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .output-header span:first-child { display: flex; align-items: center; gap: 8px; }
+        .output-clear { background: none; border: none; color: #888; cursor: pointer; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; }
+        .output-clear:hover { background: #3c3c3c; color: #fff; }
+        .next-lesson-btn { background: var(--verde); color: var(--azul); border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 12px; border-radius: 4px; font-weight: 600; transition: all 0.2s; }
+        .next-lesson-btn:disabled { background: #3c3c3c; color: #666; cursor: not-allowed; }
+        .next-lesson-btn:not(:disabled):hover { background: #00b894; }
+        .next-lesson-btn:not(:disabled) { animation: glow 1.5s ease-in-out infinite; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--verde), 0 0 10px var(--verde); } 50% { box-shadow: 0 0 15px var(--verde), 0 0 25px var(--verde); } }
+        .output-container { flex: 1; overflow-y: auto; padding: 10px 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; }
+        .output-cell { margin-bottom: 10px; border-left: 3px solid var(--morado); padding-left: 10px; }
+        .output-cell-prompt { color: #61afef; font-size: 0.8rem; margin-bottom: 2px; }
+        .output-cell-text { color: #abb2bf; white-space: pre; font-family: 'Consolas', 'Courier New', monospace; }
+        .output-cell-text.error { color: #e06c75; }
+        .output-welcome { color: #61afef; font-size: 0.85rem; margin-bottom: 2px; }
+        .output-welcome span { color: #98c379; }
+        .test-panel { height: 150px; min-height: 100px; background: #1e1e1e; border-top: 2px solid #444; display: flex; flex-direction: column; }
+        .test-header { padding: 8px 15px; background: #252526; color: #ccc; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .test-results { flex: 1; overflow-y: auto; padding: 10px 15px; font-family: 'Consolas', monospace; font-size: 0.85rem; }
+        .test-pass { color: #98c379; }
+        .test-fail { color: #e06c75; }
+        .test-info { color: #61afef; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: var(--morado); color: white; }
+        .btn-primary:hover { background: var(--morado-claro); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
+        .loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: var(--morado); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .pyodide-loading { display: none; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(102,126,234,0.1); border-radius: 20px; font-size: 0.75rem; color: var(--morado); margin-left: 10px; }
+        .pyodide-loading.active { display: inline-flex; }
+        .pyodide-loading .spinner-xs { width: 12px; height: 12px; border: 2px solid rgba(102,126,234,0.3); border-top-color: var(--morado); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .output-loading { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(102,126,234,0.1); border-bottom: 1px solid rgba(102,126,234,0.2); font-size: 0.85rem; color: var(--morado); }
+        .output-loading.hidden { display: none; }
+        .output-loading .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(102,126,234,0.3); border-top-color: var(--morado); border-radius: 50%; animation: spin 1s linear infinite; flex-shrink: 0; }
+        .loading-text { font-size: 1rem; }
+        .loading-subtext { font-size: 0.85rem; opacity: 0.8; margin-top: 8px; }
+        .loading-progress { width: 250px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-top: 15px; overflow: hidden; }
+        .loading-progress-bar { height: 100%; background: var(--morado); border-radius: 3px; width: 0%; transition: width 0.3s ease; }
+        .step-nav { display: flex; gap: 5px; padding: 10px 15px; background: var(--gris-claro); border-bottom: 1px solid var(--gris-medio); overflow-x: auto; }
+        .step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--gris-medio); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .step-dot.active { background: var(--morado); color: white; }
+        .step-dot.completed { background: var(--verde); color: var(--azul); }
+        .step-dot:hover { transform: scale(1.1); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--blanco); border-radius: 12px; padding: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .modal-icon { font-size: 3rem; margin-bottom: 15px; }
+        .modal-title { font-size: 1.2rem; color: var(--azul); margin-bottom: 10px; font-weight: 600; }
+        .modal-message { color: #666; line-height: 1.5; margin-bottom: 20px; }
+        .modal-details { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left; font-family: 'Consolas', monospace; font-size: 0.8rem; color: #e06c75; max-height: 100px; overflow-y: auto; }
+        .modal-btn { padding: 10px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background: var(--morado); color: white; transition: all 0.2s; }
+        .modal-btn:hover { background: var(--morado-claro); }
+
+        /* MOBILE TAB LAYOUT */
+        @media (max-width: 991px) {
+            .instructions-panel { max-height: 40vh; min-width: unset; width: 100%; border-right: none; border-bottom: 2px solid var(--gris-medio); }
+            .editor-panel { min-height: 60vh; }
+            .main-container { flex-direction: column; overflow-y: auto; }
+        }
+        @media (max-width: 767px) {
+            body { overflow: auto; height: auto; }
+            .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+            #mobileNav { top: 65px; }
+            .header-steps { display: none !important; }
+            .header-buttons .btn-text { display: none; }
+            .header-buttons .btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: translateX(200vw); transition: transform 0.4s ease; }
+            .header-buttons .volver-btn { transform: translateX(90px) !important; }
+            body.output-active .header-buttons .volver-btn, body.editor-active .header-buttons .volver-btn { transform: translateX(0) !important; }
+            body.output-active .header-buttons .btn, body.editor-active .header-buttons .btn { transform: translateX(0); }
+            .instructions-panel { max-height: none; height: auto; border-right: none; }
+            .main-container { height: auto; overflow-y: auto; }
+            #mobileNav { position: fixed; top: 50px; left: 0; right: 0; z-index: 999; }
+            .main-container { margin-top: 92px; }
+            .editor-panel { display: flex; flex-direction: column; height: 665px; overflow: hidden; position: relative; }
+            .editor-container { min-height: 400px; height: 50vh; }
+            .output-panel { position: absolute; bottom: 50%; left: 0; right: 0; height: 50%; transform: translateY(100%); transition: transform 0.4s ease; z-index: 10; }
+            .test-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; transform: translateY(100%); transition: transform 0.4s ease; z-index: 11; }
+            .panel-visible .output-panel, .panel-visible .test-panel { transform: translateY(0); }
+            .pyspark-btn { }
+            body.output-active .pyspark-btn, body.editor-active .pyspark-btn { display: flex !important; bottom: -10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%); width: 150px !important; height: 150px !important; opacity: 0.5; }
+        }
+        #mobileNav { background: var(--azul); }
+        #mobileNav .nav-link { color: rgba(255,255,255,0.7); border: none; font-size: 0.9rem; padding: 8px 16px; }
+        #mobileNav .nav-link.active { color: var(--morado); background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--morado); }
+    </style>
+</head>
+<body>
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando entorno de Python...</div>
+        <div class="loading-subtext" id="loadingStatus">Inicializando Pyodide</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal">
+            <div class="modal-icon">&#9888;&#65039;</div>
+            <div class="modal-title">Revisa bien tu codigo</div>
+            <div class="modal-message">Algo no esta bien escrito. Revisa la sintaxis y vuelve a intentar.</div>
+            <div class="modal-details" id="modalDetails"></div>
+            <button class="modal-btn" onclick="closeModal()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <a href="index.html" class="header-logo" style="text-decoration:none;"><img src="apache_spark_logo_icon.webp" alt="PySpark" style="height:24px;vertical-align:middle;margin-right:6px;"> PySpark Playground <span style="color: var(--morado);">- Desafio</span></a>
+        <div class="header-steps d-none d-sm-block" id="stepInfo">Desafio 1 de 3</div>
+        <div class="pyodide-loading" id="pyodideLoading"><div class="spinner-xs"></div> Cargando entorno...</div>
+        <div class="header-buttons">
+            <a href="index.html" class="btn btn-secondary volver-btn" style="text-decoration:none;"><span class="d-inline d-sm-none">&larr;</span><span class="btn-text">Volver</span></a>
+            <button class="btn btn-secondary" onclick="resetCode()">&#8635; <span class="btn-text d-none d-sm-inline">Reiniciar</span></button>
+            <button class="btn btn-primary" onclick="runTests()">&#9654; <span class="btn-text d-none d-sm-inline">Ejecutar Test (Ctrl+Enter)</span></button>
+        </div>
+    </div>
+
+    <!-- MOBILE NAV TABS -->
+    <ul class="nav nav-tabs d-md-none" id="mobileNav">
+        <li class="nav-item">
+            <button class="nav-link active" onclick="switchTab('instructions')" type="button">&#128214; Instrucciones</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('editor')" type="button">&#9998; Editor</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('output')" type="button">&#128202; Resultado</button>
+        </li>
+    </ul>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        <!-- LEFT: INSTRUCTIONS -->
+        <div class="instructions-panel mobile-active" id="instructions">
+            <div class="step-nav" id="stepNav"></div>
+            <div class="instructions-header">
+                <h2 id="lessonTitle">Desafio 1: ETL Completo</h2>
+            </div>
+            <div class="instructions-content" id="instructionsContent"></div>
+        </div>
+
+        <!-- RIGHT: EDITOR + OUTPUT -->
+        <div class="editor-panel" id="editorPanel">
+            <div class="editor-header">
+                <span>&#128221; main.py</span>
+                <span id="editorStatus">Python 3 + PySpark</span>
+            </div>
+            <div class="editor-container" id="editorContainer"></div>
+            
+            <div class="output-panel">
+                <div class="output-header">
+                    <span>&#128421;&#65039; Salida</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="output-clear" onclick="clearOutput()">Limpiar</button>
+                        <button class="next-lesson-btn" id="nextLessonBtn" onclick="goToNextLesson()" disabled>Siguiente desafio &rarr;</button>
+                    </div>
+                </div>
+                <div class="output-loading" id="outputLoading">
+                    <div class="spinner-sm"></div>
+                    <span id="outputLoadingMsg">Preparando entorno Python...</span>
+                </div>
+                <div class="output-container" id="outputContainer">
+                    <div class="output-welcome">&#9889; <span>PySpark Playground</span> - Salida</div>
+                    <div class="output-welcome" style="color: #666;">Ejecuta tu codigo para ver resultados aqui</div>
+                </div>
+            </div>
+            
+            <div class="test-panel">
+                <div class="test-header">
+                    <span>&#9889; Resultados de Tests</span>
+                    <span id="testCount">0/0 tests pasados</span>
+                </div>
+                <div class="test-results" id="testResults">
+                    <div class="test-info">Haz clic en "Ejecutar Test (Ctrl+Enter)" o presiona Ctrl+Enter para validar tu codigo.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE ACTION BUTTONS -->
+    <button class="d-md-none position-fixed end-0 p-3 pyspark-btn" onclick="window.open('https://spark.apache.org/', '_blank')" style="z-index: 100;width:150px;height:150px;border:none;background:transparent;display:none;align-items:center;justify-content:center;bottom:-10px;left:50%;transform:translateX(-50%);">
+        <img src="pyspark_img.png" alt="PySpark" style="width:150px;height:150px;">
+    </button>
+
+    <!-- PYODIDE -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+    
+    <!-- MONACO EDITOR -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- MOBILE TAB SWITCHING -->
+    <script>
+        function switchTab(tab) {
+            var instructions = document.querySelector('.instructions-panel');
+            var editorPanel = document.querySelector('.editor-panel');
+            var editorContainer = document.querySelector('.editor-container');
+            var tabs = document.querySelectorAll('#mobileNav .nav-link');
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            document.body.classList.remove('output-active');
+            document.body.classList.remove('editor-active');
+            if (tab === 'instructions') { tabs[0].classList.add('active'); instructions.style.display = 'flex'; editorPanel.style.display = 'none'; editorPanel.classList.remove('panel-visible'); }
+            else if (tab === 'editor') { tabs[1].classList.add('active'); instructions.style.display = 'none'; editorPanel.style.display = 'flex'; editorContainer.style.display = 'block'; editorPanel.classList.remove('panel-visible'); document.body.classList.add('editor-active'); if (window.monacoEditor) window.monacoEditor.layout(); }
+            else if (tab === 'output') { tabs[2].classList.add('active'); instructions.style.display = 'none'; editorPanel.style.display = 'flex'; editorPanel.classList.add('panel-visible'); document.body.classList.add('output-active'); if (window.monacoEditor) window.monacoEditor.layout(); }
+        }
+        if (window.innerWidth < 768) { document.querySelector('.editor-panel').style.display = 'none'; }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) { document.querySelector('.instructions-panel').style.display = 'flex'; document.querySelector('.editor-panel').style.display = 'flex'; if (window.monacoEditor) window.monacoEditor.layout(); }
+            else { var activeTab = document.querySelector('#mobileNav .nav-link.active'); if (activeTab && activeTab.textContent.includes('Instrucciones')) { document.querySelector('.editor-panel').style.display = 'none'; } else { document.querySelector('.instructions-panel').style.display = 'none'; } }
+        });
+    </script>
+
+    <script>
+        // ==================== LESSON DATA ====================
+        const lessons = [
+            {
+                id: 1,
+                title: "ETL Completo",
+                instructions: `<p>Crea un pipeline ETL (Extract, Transform, Load) completo que procese datos de ventas.</p><h3>Requisitos</h3><ol><li>Crea un DataFrame con ventas (producto, cantidad, precio, region)</li><li>Agrega columna "total" (cantidad * precio)</li><li>Filtra ventas con total > 10000</li><li>Agrupa por region y suma el total</li><li>Ordena por total descendente</li><li>Muestra el resultado final</li></ol><h3>Datos</h3><pre><code>ventas = [
+    ("Laptop", 10, 15000, "Norte"),
+    ("Phone", 25, 8000, "Sur"),
+    ("Tablet", 5, 12000, "Norte"),
+    ("Watch", 30, 3000, "Este"),
+    ("Laptop", 8, 15000, "Sur"),
+    ("Phone", 15, 8000, "Norte")
+]</code></pre>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import col, sum, desc\n\nspark = SparkSession.builder.appName("Desafio1").getOrCreate()\n\nventas = [\n    ("Laptop", 10, 15000, "Norte"),\n    ("Phone", 25, 8000, "Sur"),\n    ("Tablet", 5, 12000, "Norte"),\n    ("Watch", 30, 3000, "Este"),\n    ("Laptop", 8, 15000, "Sur"),\n    ("Phone", 15, 8000, "Norte")\n]\ndf = spark.createDataFrame(ventas, ["producto", "cantidad", "precio", "region"])\n\n# Completa el ETL aqui`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import col, sum, desc\n\nspark = SparkSession.builder.appName("Desafio1").getOrCreate()\n\nventas = [\n    ("Laptop", 10, 15000, "Norte"),\n    ("Phone", 25, 8000, "Sur"),\n    ("Tablet", 5, 12000, "Norte"),\n    ("Watch", 30, 3000, "Este"),\n    ("Laptop", 8, 15000, "Sur"),\n    ("Phone", 15, 8000, "Norte")\n]\ndf = spark.createDataFrame(ventas, ["producto", "cantidad", "precio", "region"])\n\ndf.withColumn("total", col("cantidad") * col("precio")) \\\n  .filter("total > 10000") \\\n  .groupBy("region") \\\n  .agg(sum("total").alias("total_ventas")) \\\n  .orderBy(desc("total_ventas")) \\\n  .show()`,
+                tests: [
+                    { name: "Columna total creada", validation: `'withColumn' in user_code and 'total' in user_code`, error: "Debes crear la columna total con withColumn()" },
+                    { name: "Filtro aplicado", validation: `'filter' in user_code or 'where' in user_code`, error: "Debes filtrar con filter() o where()" },
+                    { name: "groupBy usado", validation: `'groupBy' in user_code`, error: "Debes usar groupBy()" },
+                    { name: "agg() o sum()", validation: `'agg' in user_code or 'sum' in user_code`, error: "Debes usar agg() o sum()" },
+                    { name: "Orden descendente", validation: `'orderBy' in user_code or 'sort' in user_code`, error: "Debes ordenar con orderBy() o sort()" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Analisis de Ventas",
+                instructions: `<p>Realiza un analisis completo de ventas con multiples metricas.</p><h3>Requisitos</h3><ol><li>Crea DataFrame con ventas (vendedor, producto, monto, mes)</li><li>Calcula el promedio de monto por vendedor</li><li>Encuentra el producto con mayor venta total</li><li>Crea una columna "clasificacion" (Alta > 5000, Media > 2000, Baja)</li><li>Muestra las 3 consultas</li></ol>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import avg, sum, when, col, desc\n\nspark = SparkSession.builder.appName("Desafio2").getOrCreate()\n\nventas = [\n    ("Ana", "Laptop", 15000, "Ene"),\n    ("Ana", "Phone", 8000, "Ene"),\n    ("Luis", "Laptop", 15000, "Feb"),\n    ("Luis", "Tablet", 5000, "Feb"),\n    ("Maria", "Phone", 8000, "Mar"),\n    ("Maria", "Watch", 3000, "Mar")\n]\ndf = spark.createDataFrame(ventas, ["vendedor", "producto", "monto", "mes"])\n\n# 1. Promedio por vendedor\n\n# 2. Producto con mayor venta total\n\n# 3. Columna clasificacion`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import avg, sum, when, col, desc\n\nspark = SparkSession.builder.appName("Desafio2").getOrCreate()\n\nventas = [\n    ("Ana", "Laptop", 15000, "Ene"),\n    ("Ana", "Phone", 8000, "Ene"),\n    ("Luis", "Laptop", 15000, "Feb"),\n    ("Luis", "Tablet", 5000, "Feb"),\n    ("Maria", "Phone", 8000, "Mar"),\n    ("Maria", "Watch", 3000, "Mar")\n]\ndf = spark.createDataFrame(ventas, ["vendedor", "producto", "monto", "mes"])\n\nprint("Promedio por vendedor:")\ndf.groupBy("vendedor").agg(avg("monto").alias("promedio")).show()\n\nprint("Producto con mayor venta:")\ndf.groupBy("producto").agg(sum("monto").alias("total")).orderBy(desc("total")).show(1)\n\ndf.withColumn("clasificacion", when(col("monto") > 5000, "Alta").when(col("monto") > 2000, "Media").otherwise("Baja")).show()`,
+                tests: [
+                    { name: "groupBy() usado", validation: `'groupBy' in user_code`, error: "Debes usar groupBy()" },
+                    { name: "avg() usado", validation: `'avg' in user_code or 'mean' in user_code`, error: "Debes usar avg() o mean()" },
+                    { name: "sum() usado", validation: `'sum' in user_code`, error: "Debes usar sum()" },
+                    { name: "when() usado", validation: `'when' in user_code`, error: "Debes usar when()" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Pipeline de Datos",
+                instructions: `<p>Crea un pipeline completo de procesamiento de datos.</p><h3>Requisitos</h3><ol><li>Crea DataFrame con empleados (nombre, departamento, salario, anios)</li><li>Crea UDF que clasifique experiencia (Senior > 5 anios, Junior)</li><li>Agrega columna bono (10% del salario si Senior, 5% si Junior)</li><li>Agrupa por departamento: promedio salario, total bono, count empleados</li><li>Muestra resultado final con todo el pipeline encadenado</li></ol>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf, col, avg, sum, count, when\nfrom pyspark.sql.types import StringType\n\nspark = SparkSession.builder.appName("Desafio3").getOrCreate()\n\nempleados = [\n    ("Ana", "IT", 60000, 7),\n    ("Luis", "Ventas", 45000, 3),\n    ("Maria", "IT", 55000, 6),\n    ("Pedro", "RH", 50000, 4),\n    ("Sofia", "Ventas", 40000, 2)\n]\ndf = spark.createDataFrame(empleados, ["nombre", "departamento", "salario", "anios"])\n\n# 1. Crea UDF de clasificacion\n\n# 2. Aplica UDF y crea columna bono\n\n# 3. Agrega por departamento`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf, col, avg, sum, count\nfrom pyspark.sql.types import StringType\n\nspark = SparkSession.builder.appName("Desafio3").getOrCreate()\n\nempleados = [\n    ("Ana", "IT", 60000, 7),\n    ("Luis", "Ventas", 45000, 3),\n    ("Maria", "IT", 55000, 6),\n    ("Pedro", "RH", 50000, 4),\n    ("Sofia", "Ventas", 40000, 2)\n]\ndf = spark.createDataFrame(empleados, ["nombre", "departamento", "salario", "anios"])\n\n@udf(returnType=StringType())\ndef clasificar_experiencia(anios):\n    return "Senior" if anios > 5 else "Junior"\n\ndf.withColumn("nivel", clasificar_experiencia("anios")) \\\n  .withColumn("bono", when(col("nivel") == "Senior", col("salario") * 0.10).otherwise(col("salario") * 0.05)) \\\n  .groupBy("departamento") \\\n  .agg(avg("salario").alias("salario_promedio"), sum("bono").alias("total_bono"), count("*").alias("num_empleados")) \\\n  .show()`,
+                tests: [
+                    { name: "UDF creada", validation: `'@udf' in user_code or 'udf(returnType' in user_code`, error: "Debes crear una UDF" },
+                    { name: "withColumn() usado", validation: `'withColumn' in user_code`, error: "Debes usar withColumn()" },
+                    { name: "groupBy() usado", validation: `'groupBy' in user_code`, error: "Debes usar groupBy()" },
+                    { name: "agg() usado", validation: `'agg' in user_code`, error: "Debes usar agg()" }
+                ]
+            }
+        ];
+
+        // ==================== STATE ====================
+        let pyodide = null;
+        let editor = null;
+        let currentStep = 0;
+        let completedSteps = [];
+        let cellCounter = 0;
+
+        const STORAGE_KEY = 'pysparkDesafioCompleted';
+        const urlParams = new URLSearchParams(window.location.search);
+        const lessonParam = urlParams.get('lesson');
+        if (lessonParam !== null) currentStep = parseInt(lessonParam);
+
+        // ==================== PYODIDE ====================
+        async function initPyodide() {
+            const progressBar = document.getElementById('loadingProgressBar');
+            const headerLoading = document.getElementById('pyodideLoading');
+            const outputLoading = document.getElementById('outputLoading');
+            
+            headerLoading.classList.add('active');
+            outputLoading.classList.remove('hidden');
+            
+            updateLoadingStatus("Descargando Python y PySpark (~80MB, solo la primera vez)...");
+            progressBar.style.width = '10%';
+            
+            const progressInterval = setInterval(() => {
+                const current = parseFloat(progressBar.style.width);
+                if (current < 90) { progressBar.style.width = (current + 1) + '%'; }
+            }, 500);
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+            });
+            
+            clearInterval(progressInterval);
+            progressBar.style.width = '50%';
+            updateLoadingStatus("Inicializando...");
+            
+            const mplProgress = setInterval(() => {
+                const current = parseFloat(progressBar.style.width);
+                if (current < 95) { progressBar.style.width = (current + 1) + '%'; }
+            }, 300);
+            
+            clearInterval(mplProgress);
+            progressBar.style.width = '100%';
+            updateLoadingStatus("Listo!");
+            
+            outputLoading.style.background = 'rgba(102,126,234,0.15)';
+            setTimeout(() => { outputLoading.classList.add('hidden'); headerLoading.classList.remove('active'); }, 2000);
+            
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 500);
+        }
+
+        function updateLoadingStatus(text) {
+            document.getElementById('loadingStatus').textContent = text;
+        }
+
+        // ==================== OUTPUT PANEL ====================
+        function clearOutput() {
+            const container = document.getElementById('outputContainer');
+            container.innerHTML = '';
+            cellCounter = 0;
+        }
+        
+        function writeToOutput(text, isError = false) {
+            const container = document.getElementById('outputContainer');
+            const cell = document.createElement('div');
+            cell.className = 'output-cell';
+            const prompt = document.createElement('div');
+            prompt.className = 'output-cell-prompt';
+            prompt.textContent = isError ? 'Error:' : `Out [${++cellCounter}]:`;
+            const content = document.createElement('div');
+            content.className = 'output-cell-text' + (isError ? ' error' : '');
+            content.textContent = text;
+            cell.appendChild(prompt);
+            cell.appendChild(content);
+            container.appendChild(cell);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function parseDataFromCode(code) {
+            var dataMap = {};
+            var lines = code.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var m = lines[i].match(/^(\w+)\s*=\s*\[/);
+                if (m && lines[i].indexOf('(') > -1) {
+                    var varName = m[1];
+                    var arrLines = [lines[i]];
+                    var depth = (lines[i].match(/\(/g) || []).length - (lines[i].match(/\)/g) || []).length;
+                    for (var j = i + 1; j < lines.length && depth > 0; j++) {
+                        arrLines.push(lines[j]);
+                        depth += (lines[j].match(/\(/g) || []).length - (lines[j].match(/\)/g) || []).length;
+                    }
+                    var arrStr = arrLines.join('');
+                    var tuples = [];
+                    var re = /\(([^)]+)\)/g;
+                    var tm;
+                    while ((tm = re.exec(arrStr)) !== null) {
+                        tuples.push(tm[1].split(',').map(function(s) { return s.trim().replace(/['"]/g, ''); }));
+                    }
+                    if (tuples.length > 0) dataMap[varName] = tuples;
+                }
+            }
+            return dataMap;
+        }
+
+        function parseColumnsFromCode(code) {
+            var m = code.match(/createDataFrame\s*\(\s*\w+\s*,\s*\[([^\]]+)\]/);
+            if (m) return m[1].split(',').map(function(s) { return s.trim().replace(/['"]/g, ''); });
+            return null;
+        }
+
+        function parseSchemaFromCode(code) {
+            var fields = [];
+            var re = /StructField\s*\(\s*['"](\w+)['"]\s*,\s*(\w+)\s*\(/g;
+            var m;
+            var typeMap = {
+                'StringType': 'string', 'IntegerType': 'integer', 'LongType': 'long',
+                'DoubleType': 'double', 'FloatType': 'float', 'BooleanType': 'boolean',
+                'ShortType': 'short', 'ByteType': 'byte', 'DateType': 'date',
+                'TimestampType': 'timestamp', 'DecimalType': 'decimal'
+            };
+            while ((m = re.exec(code)) !== null) {
+                var typeName = typeMap[m[2]] || m[2].toLowerCase();
+                fields.push({ name: m[1], type: typeName });
+            }
+            if (fields.length > 0) return fields;
+            var m2 = code.match(/createDataFrame\s*\(\s*\w+\s*,\s*\[([^\]]+)\]/);
+            if (m2) return m2[1].split(',').map(function(s) { return { name: s.trim().replace(/['"]/g, ''), type: 'string' }; });
+            return null;
+        }
+
+        function inferTypesFromData(data) {
+            if (!data || data.length === 0) return null;
+            var numCols = data[0].length;
+            var fields = [];
+            for (var c = 0; c < numCols; c++) {
+                var allInt = true, allNum = true;
+                for (var r = 0; r < data.length; r++) {
+                    var v = String(data[r][c]);
+                    if (!/^-?\d+$/.test(v)) { allInt = false; }
+                    if (!/^-?\d+(\.\d+)?$/.test(v)) { allNum = false; }
+                }
+                fields.push({ name: '_c' + c, type: allInt ? 'integer' : (allNum ? 'double' : 'string') });
+            }
+            return fields;
+        }
+
+        function simulateShow(data, columns, limit) {
+            limit = limit || 20;
+            if (!columns) {
+                if (data && data.length > 0) columns = data[0].map(function(_, i) { return '_c' + i; });
+                else return '+---+\n|  |\n+---+\n(no data)\n+---+';
+            }
+            var colWidths = columns.map(function(c) { return c.length; });
+            var rows = data ? data.slice(0, limit) : [];
+            for (var i = 0; i < rows.length; i++) {
+                for (var j = 0; j < rows[i].length; j++) {
+                    if (String(rows[i][j]).length > colWidths[j]) colWidths[j] = String(rows[i][j]).length;
+                }
+            }
+            var sep = '+' + colWidths.map(function(w) { return '-'.repeat(w + 2); }).join('+') + '+';
+            var header = '|' + columns.map(function(c, i) { return ' ' + c.padEnd(colWidths[i]) + ' '; }).join('|') + '|';
+            var result = sep + '\n' + header + '\n' + sep + '\n';
+            for (var i = 0; i < rows.length; i++) {
+                result += '|' + rows[i].map(function(v, j) { return ' ' + String(v).padEnd(colWidths[j]) + ' '; }).join('|') + '|\n';
+            }
+            result += sep + '\nonly showing top ' + Math.min(rows.length, limit) + ' rows\n';
+            return result;
+        }
+
+        function simulatePrintSchema(fields) {
+            if (!fields || fields.length === 0) return 'root\n |-- (empty schema)\n';
+            var result = 'root\n';
+            for (var i = 0; i < fields.length; i++) {
+                if (typeof fields[i] === 'string') {
+                    result += ' |-- ' + fields[i] + ': string (nullable = true)\n';
+                } else {
+                    result += ' |-- ' + fields[i].name + ': ' + fields[i].type + ' (nullable = true)\n';
+                }
+            }
+            return result;
+        }
+
+        function simulateDescribe(data, columns) {
+            if (!data || !columns) return 'summary | _c0\n ------- | ---\n';
+            var summary = ['count', 'mean', 'stddev', 'min', 'max'];
+            var result = '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            result += '|summary|' + columns.map(function(c) { return c.padEnd(8); }).join('|') + '|\n';
+            result += '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            for (var s = 0; s < summary.length; s++) {
+                result += '|' + summary[s].padEnd(7) + '|' + columns.map(function() { return ('*' + Math.floor(Math.random() * 90 + 10)).padEnd(8); }).join('|') + '|\n';
+            }
+            result += '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            return result;
+        }
+
+        function simulateSparkOutput(code) {
+            var lines = code.split('\n');
+            var dataMap = parseDataFromCode(code);
+            var columns = parseColumnsFromCode(code);
+            var schemaFields = parseSchemaFromCode(code);
+            var output = [];
+            var dfVars = [];
+            var hasStructType = code.indexOf('StructType') > -1;
+            var hasPrintSchema = code.indexOf('printSchema') > -1;
+            var hasShow = /\.show\s*\(/.test(code);
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                var dfMatch = line.match(/(\w+)\s*=\s*spark\.createDataFrame/);
+                if (dfMatch) {
+                    var varName = dfMatch[1];
+                    var dataName = line.match(/createDataFrame\s*\(\s*(\w+)/);
+                    if (dataName && dataMap[dataName[1]]) {
+                        dfVars.push({ name: varName, data: dataMap[dataName[1]], columns: columns, schema: schemaFields });
+                    } else {
+                        dfVars.push({ name: varName, data: [], columns: columns, schema: schemaFields });
+                    }
+                }
+                var readMatch = line.match(/(\w+)\s*=\s*spark\.read\.(csv|json|parquet|text|orc|jdbc|delta|avro)/);
+                if (readMatch) {
+                    var readVarName = readMatch[1];
+                    var readFormat = readMatch[2];
+                    var isHeader = /header\s*=\s*True/.test(line);
+                    var inferSchema = /inferSchema\s*=\s*True/.test(line);
+                    var readColumns, readData;
+                    if (readFormat === 'csv' && isHeader) {
+                        readColumns = ['id', 'nombre', 'edad', 'ciudad'];
+                        readData = [
+                            ['1', 'Ana', '28', 'CDMX'],
+                            ['2', 'Luis', '35', 'Guadalajara'],
+                            ['3', 'Maria', '22', 'Monterrey'],
+                            ['4', 'Pedro', '40', 'CDMX'],
+                            ['5', 'Sofia', '19', 'Puebla']
+                        ];
+                    } else if (readFormat === 'json') {
+                        readColumns = ['id', 'nombre', 'edad'];
+                        readData = [
+                            ['1', 'Ana', '28'],
+                            ['2', 'Luis', '35'],
+                            ['3', 'Maria', '22']
+                        ];
+                    } else if (readFormat === 'parquet') {
+                        readColumns = ['id', 'nombre', 'edad', 'salario'];
+                        readData = [
+                            ['1', 'Ana', '28', '50000'],
+                            ['2', 'Luis', '35', '60000'],
+                            ['3', 'Maria', '22', '45000']
+                        ];
+                    } else {
+                        readColumns = ['col1', 'col2', 'col3'];
+                        readData = [
+                            ['val1', 'val2', 'val3'],
+                            ['val4', 'val5', 'val6']
+                        ];
+                    }
+                    dfVars.push({ name: readVarName, data: readData, columns: readColumns, schema: null });
+                }
+            }
+
+            var currentDf = dfVars.length > 0 ? dfVars[dfVars.length - 1] : null;
+
+            if (hasStructType && currentDf && !hasPrintSchema && !hasShow) {
+                output.push(simulatePrintSchema(schemaFields || currentDf.columns));
+            }
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line.match(/\.show\s*\(/) || line === '.show()') {
+                    if (currentDf) {
+                        var limit = 20;
+                        var lm = line.match(/\.show\s*\(\s*(\d+)/);
+                        if (lm) limit = parseInt(lm[1]);
+                        output.push(simulateShow(currentDf.data, currentDf.columns, limit));
+                    }
+                }
+                if (line.match(/\.printSchema\s*\(/) || line === '.printSchema()') {
+                    if (currentDf) output.push(simulatePrintSchema(schemaFields || currentDf.columns));
+                }
+                if (line.match(/\.describe\s*\(/) || line === '.describe()') {
+                    if (currentDf) output.push(simulateDescribe(currentDf.data, currentDf.columns));
+                }
+                if (line.match(/^print\s*\(/)) {
+                    var pm = line.match(/^print\s*\(\s*['"](.+?)['"]\s*\)/);
+                    if (pm) output.push(pm[1]);
+                    else {
+                        var vm = line.match(/^print\s*\(\s*(\w+)\s*\)/);
+                        if (vm) {
+                            var v = vm[1];
+                            if (v === 'spark.version') output.push('3.5.0');
+                            else if (currentDf && currentDf.columns) output.push(String(currentDf.columns));
+                            else output.push(String(v));
+                        }
+                    }
+                }
+                var selectMatch = line.match(/\.select\s*\(\s*['"](\w+)['"]\s*\)/);
+                if (selectMatch && currentDf) {
+                    var colIdx = currentDf.columns ? currentDf.columns.indexOf(selectMatch[1]) : -1;
+                    if (colIdx >= 0) {
+                        var newData = currentDf.data.map(function(r) { return [r[colIdx]]; });
+                        output.push(simulateShow(newData, [selectMatch[1]], 20));
+                    }
+                }
+                var filterMatch = line.match(/\.filter\s*\(/);
+                if (filterMatch && currentDf) {
+                    output.push(simulateShow(currentDf.data.slice(0, 3), currentDf.columns, 20));
+                }
+                var joinMatch = line.match(/\.join\s*\(/);
+                if (joinMatch) {
+                    output.push(simulateShow([['1', 'Ana', '50000'], ['2', 'Luis', '60000']], ['id', 'nombre', 'salario'], 20));
+                }
+                var gbMatch = line.match(/\.groupBy\s*\(/);
+                if (gbMatch && currentDf) {
+                    var groupCol = line.match(/groupBy\s*\(\s*['"](\w+)['"]/);
+                    if (groupCol) {
+                        var grouped = {};
+                        for (var g = 0; g < currentDf.data.length; g++) {
+                            var key = currentDf.data[g][0];
+                            grouped[key] = (grouped[key] || 0) + 1;
+                        }
+                        var groupedData = Object.keys(grouped).map(function(k) { return [k, String(grouped[k])]; });
+                        output.push(simulateShow(groupedData, [groupCol[1], 'count(1)'], 20));
+                    }
+                }
+                if (line.match(/\.createOrReplaceTempView/)) {
+                    var viewName = line.match(/createOrReplaceTempView\s*\(\s*['"](\w+)['"]/);
+                    if (viewName) output.push('');
+                }
+                if (line.match(/spark\.sql\s*\(/)) {
+                    output.push(simulateShow([['Ana', '28'], ['Luis', '35']], ['nombre', 'edad'], 20));
+                }
+            }
+
+            return output.filter(function(o) { return o.length > 0; }).join('\n');
+        }
+
+        function captureStdout(pyodide, code) {
+            var simulated = simulateSparkOutput(code);
+            if (simulated.trim()) writeToOutput(simulated);
+            pyodide.runPython('user_code = ' + JSON.stringify(code));
+            return simulated;
+        }
+
+        // ==================== MONACO EDITOR ====================
+        function initMonacoEditor() {
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                    value: '', language: 'python', theme: 'vs-dark',
+                    minimap: { enabled: false }, fontSize: 14, lineNumbers: 'on',
+                    scrollBeyondLastLine: false, automaticLayout: true, tabSize: 4, wordWrap: 'on'
+                });
+                window.monacoEditor = editor;
+                loadLesson(currentStep);
+            });
+        }
+
+        // ==================== LESSON MANAGEMENT ====================
+        function loadLesson(index) {
+            currentStep = index;
+            const lesson = lessons[index];
+            document.getElementById('lessonTitle').textContent = `Desafio ${lesson.id}: ${lesson.title}`;
+            document.getElementById('instructionsContent').innerHTML = lesson.instructions;
+            document.getElementById('stepInfo').textContent = `Desafio ${lesson.id} de ${lessons.length}`;
+            if (editor) { editor.setValue(lesson.seedCode); }
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Haz clic en "Ejecutar Test (Ctrl+Enter)" o presiona Ctrl+Enter para validar tu codigo.</div>';
+            document.getElementById('testCount').textContent = '0/0 tests pasados';
+            clearOutput();
+            if (window.innerWidth <= 600) { switchTab('instructions'); }
+            updateStepDots();
+        }
+
+        function updateStepDots() {
+            const nav = document.getElementById('stepNav');
+            nav.innerHTML = '';
+            lessons.forEach((lesson, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot' + (i === currentStep ? ' active' : '') + (completedSteps.includes(i) ? ' completed' : '');
+                dot.textContent = lesson.id;
+                dot.onclick = () => loadLesson(i);
+                nav.appendChild(dot);
+            });
+        }
+
+        function resetCode() {
+            if (editor) { editor.setValue(lessons[currentStep].seedCode); }
+            clearOutput();
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Codigo reiniciado.</div>';
+        }
+
+        // ==================== TEST EXECUTION ====================
+        async function runTests() {
+            if (!pyodide) {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                await initPyodide();
+            }
+            
+            const code = editor.getValue();
+            const lesson = lessons[currentStep];
+            
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Ejecutando codigo y validando tests...</div>';
+            
+            try {
+                captureStdout(pyodide, code);
+                
+                let passed = 0;
+                let failed = 0;
+                let results = [];
+                
+                for (const test of lesson.tests) {
+                    try {
+                        if (test.code) { pyodide.runPython(test.code); }
+                        const isValid = pyodide.runPython(test.validation);
+                        if (isValid) { passed++; results.push(`<div class="test-pass">&#10004; ${test.name}</div>`); }
+                        else { failed++; results.push(`<div class="test-fail">&#10008; ${test.name}: ${test.error}</div>`); }
+                    } catch (error) { failed++; results.push(`<div class="test-fail">&#10008; ${test.name}: ${error.message}</div>`); }
+                }
+                
+                document.getElementById('testCount').textContent = `${passed}/${lesson.tests.length} tests pasados`;
+                document.getElementById('testResults').innerHTML = results.join('');
+                
+                if (passed === lesson.tests.length) {
+                    if (!completedSteps.includes(currentStep)) {
+                        completedSteps.push(currentStep);
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(completedSteps));
+                    }
+                    document.getElementById('nextLessonBtn').disabled = false;
+                    var btn = document.getElementById('nextLessonBtn');
+                    if (currentStep < lessons.length - 1) {
+                        btn.innerHTML = 'Siguiente desafio &rarr;';
+                        results.push(`<div class="test-info" style="margin-top: 10px;">&#127881; Todos los tests pasaron! Haz clic en "Siguiente desafio" para continuar.</div>`);
+                        document.getElementById('testResults').innerHTML = results.join('');
+                    } else {
+                        btn.innerHTML = 'Volver al inicio &rarr;';
+                        results.push(`<div class="test-info" style="margin-top: 10px;">&#127942; Felicidades! Has completado todos los desafios!</div>`);
+                        document.getElementById('testResults').innerHTML = results.join('');
+                    }
+                }
+            } catch (error) {
+                document.getElementById('testResults').innerHTML = `<div class="test-fail">Error: ${error.message}</div>`;
+            }
+        }
+
+        function goToNextLesson() {
+            if (currentStep < lessons.length - 1) {
+                window.location.href = `desafio.html?lesson=${currentStep + 1}`;
+            } else {
+                window.location.href = `index.html`;
+            }
+        }
+
+        // ==================== MODAL ====================
+        function closeModal() { document.getElementById('errorModal').classList.remove('active'); }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runTests(); }
+            if (e.key === 'Escape') { closeModal(); }
+        });
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            completedSteps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            initPyodide();
+            initMonacoEditor();
+        });
+    </script>
+</body>
+</html>

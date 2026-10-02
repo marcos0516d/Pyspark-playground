@@ -1,0 +1,7 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /lecciones_*
+
+# Sitemap
+Sitemap: https://pyspark-playground.vercel.app/sitemap.xml

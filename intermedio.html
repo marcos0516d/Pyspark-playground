@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecciones Intermedio - PySpark Playground | Aprende Big Data Python</title>
+    <meta name="description" content="10 lecciones de PySpark nivel intermedio. Aprende joins, SQL, groupBy, lectura de archivos Parquet y mas.">
+    <meta name="keywords" content="pyspark intermedio, spark sql, joins pyspark, groupBy, parquet, tutorial intermedio">
+    <meta name="author" content="PySpark Playground">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://pyspark-playground.vercel.app/intermedio.html">
+    <link rel="icon" type="image/webp" href="apache_spark_logo_icon.webp">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Lecciones Intermedio - PySpark Playground">
+    <meta property="og:description" content="10 lecciones de PySpark nivel intermedio.">
+    <meta property="og:url" content="https://pyspark-playground.vercel.app/intermedio.html">
+    <meta property="og:site_name" content="PySpark Playground">
+    <meta property="og:locale" content="es_ES">
+    <meta name="twitter:card" content="summary">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        "name": "PySpark Intermedio",
+        "description": "10 lecciones de PySpark nivel intermedio",
+        "provider": { "@type": "Organization", "name": "PySpark Playground" },
+        "inLanguage": "es",
+        "isAccessibleForFree": true,
+        "educationalLevel": "intermediate"
+    }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --azul: #0a0a23; --naranja: #ff6b35; --naranja-claro: #ff8c5a; --amarillo: #f7c948; --verde: #00d4aa; --morado: #667eea; --gris-claro: #f8f9fa; --gris-medio: #e9ecef; --texto: #333; --blanco: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gris-claro); color: var(--texto); min-height: 100vh; padding-top: 50px; }
+        .header { background: var(--azul); color: var(--blanco); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; height: 50px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header-logo { font-size: 1.2rem; font-weight: bold; color: var(--naranja); }
+        .header-buttons { display: flex; gap: 10px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .hero { background: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 50%, var(--amarillo) 100%); color: white; padding: 40px 20px; text-align: center; }
+        .hero h1 { font-size: 2rem; margin-bottom: 10px; }
+        .hero p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto 20px; }
+        .hero-stats { display: flex; justify-content: center; gap: 30px; margin-top: 15px; }
+        .hero-stat { text-align: center; }
+        .hero-stat-number { font-size: 1.8rem; font-weight: bold; }
+        .hero-stat-label { font-size: 0.85rem; opacity: 0.8; }
+        .progress-section { background: var(--blanco); padding: 20px; border-bottom: 1px solid var(--gris-medio); }
+        .progress-container { max-width: 1100px; margin: 0 auto; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .progress-header h3 { font-size: 1rem; color: var(--azul); }
+        .progress-header span { font-size: 0.85rem; color: #666; }
+        .progress-bar { width: 100%; height: 10px; background: var(--gris-medio); border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--naranja) 0%, var(--amarillo) 100%); border-radius: 5px; transition: width 0.5s ease; }
+        .lessons-container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+        .lessons-title { font-size: 1.3rem; color: var(--azul); margin-bottom: 20px; }
+        .lessons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .lesson-card { background: var(--blanco); border-radius: 10px; padding: 20px; border: 2px solid var(--gris-medio); transition: all 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .lesson-card:hover { border-color: var(--naranja); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 107, 53, 0.15); }
+        .lesson-card.completed { border-color: var(--verde); }
+        .lesson-card.completed:hover { box-shadow: 0 8px 25px rgba(0, 212, 170, 0.15); }
+        .lesson-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .lesson-number { width: 36px; height: 36px; border-radius: 50%; background: var(--gris-medio); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: var(--texto); }
+        .lesson-card.completed .lesson-number { background: var(--verde); color: var(--azul); }
+        .lesson-card.active .lesson-number { background: var(--naranja); color: white; }
+        .lesson-tests { font-size: 0.75rem; color: #888; background: var(--gris-claro); padding: 3px 8px; border-radius: 10px; }
+        .lesson-card.completed .lesson-tests { background: rgba(0, 212, 170, 0.1); color: var(--verde); }
+        .lesson-card-title { font-size: 1rem; font-weight: 600; color: var(--azul); margin-bottom: 8px; }
+        .lesson-card-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
+        .lesson-card-footer { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--gris-medio); display: flex; align-items: center; justify-content: space-between; }
+        .lesson-status { font-size: 0.8rem; color: #888; }
+        .lesson-card.completed .lesson-status { color: var(--verde); font-weight: 500; }
+        .lesson-arrow { color: var(--naranja); font-size: 1.2rem; transition: transform 0.2s; }
+        .lesson-card:hover .lesson-arrow { transform: translateX(4px); }
+        .lesson-card.completed .lesson-arrow { color: var(--verde); }
+        .footer { background: var(--azul); color: rgba(255, 255, 255, 0.6); text-align: center; padding: 20px; font-size: 0.8rem; margin-top: 20px; }
+        .footer a { color: var(--verde); text-decoration: none; }
+        @media (max-width: 900px) { .hero h1 { font-size: 1.6rem; } .hero-stats { gap: 20px; } .hero-stat-number { font-size: 1.5rem; } .lessons-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; } }
+        @media (max-width: 600px) { .header { flex-wrap: wrap; gap: 8px; height: auto; padding: 10px 15px; } .hero { padding: 30px 15px; } .hero h1 { font-size: 1.3rem; } .hero p { font-size: 0.9rem; } .hero-stats { flex-direction: column; gap: 10px; } .lessons-container { padding: 20px 15px; } .lessons-grid { grid-template-columns: 1fr; gap: 12px; } .lesson-card { padding: 15px; display: flex; align-items: center; gap: 12px; } .lesson-card-title { font-size: 0.95rem; } .lesson-card-desc { font-size: 0.8rem; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="header-logo" style="text-decoration:none;"><img src="apache_spark_logo_icon.webp" alt="PySpark" style="height:24px;vertical-align:middle;margin-right:6px;"> PySpark Playground <span style="color: var(--naranja);">- Nivel Intermedio</span></a>
+        <div class="header-buttons">
+            <a href="index.html" class="btn btn-secondary" style="text-decoration:none;">&larr; Volver</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>Aprende PySpark Intermedio</h1>
+        <p>10 lecciones para dominar joins, SQL, agregaciones y manejo de archivos de datos.</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-number">10</div>
+                <div class="hero-stat-label">Lecciones</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">30</div>
+                <div class="hero-stat-label">Tests</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" id="completedCount">0</div>
+                <div class="hero-stat-label">Completadas</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-container">
+            <div class="progress-header">
+                <h3>Tu progreso</h3>
+                <span id="progressText">0 de 10 lecciones</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lessons-container">
+        <h2 class="lessons-title">Lecciones</h2>
+        <div class="lessons-grid" id="lessonsGrid"></div>
+    </div>
+
+    <div class="footer">
+        <p>PySpark Playground &copy; 2026 &mdash; Proyecto educativo de codigo abierto</p>
+        <p style="font-size: 0.75rem; margin-top: 8px; opacity: 0.7;">Lecciones basadas en la <a href="https://spark.apache.org/docs/latest/api/python/user_guide/index.html" target="_blank" style="color: inherit; text-decoration: underline;">documentacion oficial de PySpark</a></p>
+    </div>
+
+    <script>
+        const lessons = [
+            { id: 1, title: "Limpiar datos", desc: "Elimina nulos, duplicados y valores atipicos con dropna, fillna.", tests: 3 },
+            { id: 2, title: "Transformar columnas", desc: "Usa withColumn, when/otherwise y regexp_replace.", tests: 3 },
+            { id: 3, title: "Resumir datos", desc: "Agrega datos con groupBy, agg y funciones de ventana.", tests: 3 },
+            { id: 4, title: "Joins", desc: "Combina DataFrames con inner, left, right y full joins.", tests: 3 },
+            { id: 5, title: "SQL con PySpark", desc: "Ejecuta consultas SQL con createOrReplaceTempView.", tests: 3 },
+            { id: 6, title: "SQL vs DataFrame API", desc: "Compara enfoques SQL y API para las mismas operaciones.", tests: 3 },
+            { id: 7, title: "Leer CSV y JSON", desc: "Carga datos desde archivos CSV y JSON.", tests: 3 },
+            { id: 8, title: "Leer Parquet", desc: "Trabaja con archivos Parquet para datos columnares.", tests: 3 },
+            { id: 9, title: "Guardar datos", desc: "Exporta DataFrames a CSV, Parquet y JSON.", tests: 3 },
+            { id: 10, title: "Proyecto Final", desc: "Pipeline completo de lectura, transformacion y guardado.", tests: 3 }
+        ];
+
+        const completedSteps = JSON.parse(localStorage.getItem('pysparkCompletedIntermedio')) || [];
+
+        function updateProgress() {
+            const completed = completedSteps.length;
+            const total = lessons.length;
+            const pct = Math.round((completed / total) * 100);
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('progressText').textContent = `${completed} de ${total} lecciones`;
+            document.getElementById('progressFill').style.width = pct + '%';
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('lessonsGrid');
+            grid.innerHTML = '';
+            lessons.forEach((lesson, index) => {
+                const isCompleted = completedSteps.includes(index);
+                const statusText = isCompleted ? 'Completada' : 'No iniciada';
+                const card = document.createElement('a');
+                card.href = `lecciones_intermedio.html?lesson=${index}`;
+                card.className = 'lesson-card' + (isCompleted ? ' completed' : '');
+                card.innerHTML = `
+                    <div class="lesson-card-header">
+                        <div class="lesson-number">${lesson.id}</div>
+                        <div class="lesson-tests">${lesson.tests} tests</div>
+                    </div>
+                    <div class="lesson-card-title">${lesson.title}</div>
+                    <div class="lesson-card-desc">${lesson.desc}</div>
+                    <div class="lesson-card-footer">
+                        <div class="lesson-status">${statusText}</div>
+                        <div class="lesson-arrow">&rarr;</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() { updateProgress(); renderCards(); });
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+</html>

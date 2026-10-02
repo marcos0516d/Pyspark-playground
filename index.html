@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpark Playground - Aprende PySpark Gratis en Linea | Tutorial Interactivo Big Data</title>
+    <meta name="description" content="Plataforma interactiva gratuita para aprender PySpark de Apache Spark. Escribe codigo Spark en el navegador, ejecuta tests y domina el procesamiento de datos distribuido con 32 lecciones practicas. Aprende DataFrames, SQL, UDFs, joins y mas.">
+    <meta name="keywords" content="pyspark, apache spark, big data, dataframes, spark sql, aprender pyspark, tutorial pyspark, programacion, data engineering, gratis, online, interactivo, udf, joins, funnel, etl, procesamiento distribuido">
+    <meta name="author" content="PySpark Playground">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://pyspark-playground.vercel.app/">
+    <link rel="icon" type="image/webp" href="apache_spark_logo_icon.webp">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PySpark Playground - Aprende PySpark Gratis en Linea">
+    <meta property="og:description" content="Plataforma interactiva gratuita para aprender PySpark de Apache Spark. 32 lecciones practicas con codigo en vivo.">
+    <meta property="og:url" content="https://pyspark-playground.vercel.app/">
+    <meta property="og:site_name" content="PySpark Playground">
+    <meta property="og:locale" content="es_ES">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PySpark Playground - Aprende PySpark Gratis en Linea">
+    <meta name="twitter:description" content="Plataforma interactiva gratuita para aprender PySpark de Apache Spark. 32 lecciones practicas con codigo en vivo.">
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PySpark Playground",
+        "url": "https://pyspark-playground.vercel.app/",
+        "description": "Plataforma interactiva gratuita para aprender PySpark de Apache Spark con 32 lecciones practicas en el navegador.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "PySpark Playground"
+        },
+        "inLanguage": "es",
+        "keywords": "pyspark, apache spark, big data, dataframes, spark sql, tutorial interactivo"
+    }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --azul: #0a0a23;
+            --naranja: #ff6b35;
+            --naranja-claro: #ff8c5a;
+            --amarillo: #f7c948;
+            --morado: #667eea;
+            --morado-claro: #764ba2;
+            --gris-claro: #f8f9fa;
+            --gris-medio: #e9ecef;
+            --texto: #333;
+            --blanco: #fff;
+            --verde: #00d4aa;
+            --rojo: #e74c3c;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--gris-claro);
+            color: var(--texto);
+            min-height: 100vh;
+            padding-top: 50px;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--azul);
+            color: var(--blanco);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 50px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .header-logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--naranja);
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--naranja);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--naranja-claro);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 50%, var(--amarillo) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* LEVELS SECTION */
+        .levels-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        
+        .levels-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul);
+            margin-bottom: 10px;
+        }
+        
+        .levels-subtitle {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        /* LEVEL CARD */
+        .level-card {
+            background: var(--blanco);
+            border-radius: 14px;
+            padding: 30px 25px;
+            border: 2px solid var(--gris-medio);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+        
+        .level-card.beginner::before { background: var(--verde); }
+        .level-card.intermediate::before { background: var(--naranja); }
+        .level-card.advanced::before { background: var(--rojo); }
+        
+        .level-card.beginner:hover { border-color: var(--verde); }
+        .level-card.intermediate:hover { border-color: var(--naranja); }
+        .level-card.advanced:hover { border-color: var(--rojo); }
+        
+        .level-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .level-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--azul);
+            margin-bottom: 8px;
+        }
+        
+        .level-card.beginner .level-name { color: #00a884; }
+        .level-card.intermediate .level-name { color: #d68910; }
+        .level-card.advanced .level-name { color: #c0392b; }
+        
+        .level-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+        
+        .level-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .level-topic {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--gris-claro);
+            color: #555;
+        }
+        
+        .level-card.beginner .level-topic { background: rgba(0, 212, 170, 0.1); color: #00a884; }
+        .level-card.intermediate .level-topic { background: rgba(255, 107, 53, 0.1); color: #d68910; }
+        .level-card.advanced .level-topic { background: rgba(231, 76, 60, 0.1); color: #c0392b; }
+        
+        /* PROGRESS */
+        .level-progress {
+            margin-bottom: 18px;
+        }
+        
+        .level-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .level-progress-text {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .level-progress-text strong {
+            color: var(--texto);
+        }
+        
+        .level-progress-pct {
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .level-card.beginner .level-progress-pct { color: #00a884; }
+        .level-card.intermediate .level-progress-pct { color: #d68910; }
+        .level-card.advanced .level-progress-pct { color: #c0392b; }
+        
+        .level-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gris-medio);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .level-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .level-card.beginner .level-progress-fill { background: var(--verde); }
+        .level-card.intermediate .level-progress-fill { background: var(--naranja); }
+        .level-card.advanced .level-progress-fill { background: var(--rojo); }
+        
+        .level-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 1px solid var(--gris-medio);
+        }
+        
+        .level-stat {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .level-stat strong {
+            color: var(--texto);
+        }
+        
+        .level-arrow {
+            font-size: 1.3rem;
+            color: var(--naranja);
+            transition: transform 0.2s;
+        }
+        
+        .level-card:hover .level-arrow {
+            transform: translateX(5px);
+        }
+
+        /* CHALLENGE SECTION */
+        .challenge-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px 50px;
+        }
+        
+        .challenge-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 14px;
+            padding: 40px 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: white;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .challenge-card:hover {
+            border-color: var(--naranja);
+            box-shadow: 0 12px 40px rgba(255, 107, 53, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--naranja), var(--amarillo), var(--naranja));
+        }
+        
+        .challenge-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, transparent 70%);
+            top: -50px;
+            right: -50px;
+            pointer-events: none;
+        }
+        
+        .challenge-info {
+            flex: 1;
+        }
+        
+        .challenge-badge {
+            display: inline-block;
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--naranja);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .challenge-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .challenge-desc {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        
+        .challenge-retos {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .challenge-reto {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .challenge-reto-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255, 107, 53, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--naranja);
+            font-weight: 700;
+        }
+        
+        .challenge-cta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .challenge-btn {
+            background: var(--naranja);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .challenge-btn:hover {
+            background: var(--naranja-claro);
+            transform: scale(1.05);
+        }
+        
+        .challenge-stars {
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--azul);
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .levels-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 8px;
+                height: auto;
+                padding: 10px 15px;
+            }
+            
+            .hero {
+                padding: 40px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero p {
+                font-size: 0.95rem;
+            }
+            
+            .levels-container {
+                padding: 30px 15px;
+            }
+            
+            .level-card {
+                padding: 25px 20px;
+            }
+            
+            .challenge-section {
+                padding: 0 15px 30px;
+            }
+            
+            .challenge-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 25px 20px;
+            }
+            
+            .challenge-title {
+                font-size: 1.3rem;
+            }
+            
+            .challenge-desc {
+                font-size: 0.9rem;
+            }
+            
+            .challenge-retos {
+                justify-content: center;
+            }
+            
+            .challenge-cta {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                width: 100%;
+            }
+            
+            .challenge-btn {
+                width: 100%;
+                padding: 14px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+    
+    <!-- Precarga Pyodide -->
+    <script>
+      window.addEventListener('load', function() {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+        document.head.appendChild(script);
+      });
+    </script>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <a href="index.html" class="header-logo" style="text-decoration:none;"><img src="apache_spark_logo_icon.webp" alt="PySpark" style="height:24px;vertical-align:middle;margin-right:6px;"> PySpark Playground</a>
+        <div class="header-buttons">
+            <a href="https://spark.apache.org/docs/latest/api/python/index.html" class="btn btn-secondary" target="_blank">Documentacion</a>
+        </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+        <h1>Aprende PySpark desde Cero</h1>
+        <p>Domina Apache Spark para procesamiento de datos distribuido. Elige tu nivel y comienza a aprender de forma interactiva con codigo en vivo.</p>
+    </div>
+
+    <!-- LEVELS -->
+    <div class="levels-container">
+        <h2 class="levels-title">Elige tu nivel</h2>
+        <p class="levels-subtitle">Selecciona el nivel que mejor se adapte a tu experiencia</p>
+        
+        <div class="levels-grid">
+            <!-- PRINCIPIANTE -->
+            <a href="principiante.html" class="level-card beginner">
+                <div class="level-icon">📗</div>
+                <div class="level-name">Principiante</div>
+                <div class="level-desc">Nunca usaste PySpark o tienes poco conocimiento. Aprende SparkSession, DataFrames y operaciones basicas desde cero.</div>
+                <div class="level-topics">
+                    <span class="level-topic">SparkSession</span>
+                    <span class="level-topic">DataFrames</span>
+                    <span class="level-topic">select</span>
+                    <span class="level-topic">filter</span>
+                    <span class="level-topic">show()</span>
+                </div>
+                <div class="level-progress" id="progressBeginner">
+                    <div class="level-progress-header">
+                        <div class="level-progress-text"><strong id="completedBeginner">0</strong> de 12 lecciones</div>
+                        <div class="level-progress-pct" id="pctBeginner">0%</div>
+                    </div>
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="fillBeginner" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    <div class="level-stat"><strong>12</strong> lecciones &middot; <strong>36</strong> tests</div>
+                    <div class="level-arrow">&rarr;</div>
+                </div>
+            </a>
+
+            <!-- INTERMEDIO -->
+            <a href="intermedio.html" class="level-card intermediate">
+                <div class="level-icon">📙</div>
+                <div class="level-name">Intermedio</div>
+                <div class="level-desc">Conoces lo basico y quieres profundizar. Aprende joins, SQL, limpieza de datos, agregaciones y lectura de archivos.</div>
+                <div class="level-topics">
+                    <span class="level-topic">Joins</span>
+                    <span class="level-topic">SQL</span>
+                    <span class="level-topic">groupBy</span>
+                    <span class="level-topic">Parquet</span>
+                </div>
+                <div class="level-progress" id="progressIntermediate">
+                    <div class="level-progress-header">
+                        <div class="level-progress-text"><strong id="completedIntermediate">0</strong> de 10 lecciones</div>
+                        <div class="level-progress-pct" id="pctIntermediate">0%</div>
+                    </div>
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="fillIntermediate" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    <div class="level-stat"><strong>10</strong> lecciones &middot; <strong>30</strong> tests</div>
+                    <div class="level-arrow">&rarr;</div>
+                </div>
+            </a>
+
+            <!-- AVANZADO -->
+            <a href="avanzado.html" class="level-card advanced">
+                <div class="level-icon">📕</div>
+                <div class="level-name">Avanzado</div>
+                <div class="level-desc">Dominas PySpark y quieres UDFs, debugging, logging y optimizacion. Domina las herramientas profesionales de Spark.</div>
+                <div class="level-topics">
+                    <span class="level-topic">UDFs</span>
+                    <span class="level-topic">UDTFs</span>
+                    <span class="level-topic">Spark UI</span>
+                    <span class="level-topic">Profiling</span>
+                </div>
+                <div class="level-progress" id="progressAdvanced">
+                    <div class="level-progress-header">
+                        <div class="level-progress-text"><strong id="completedAdvanced">0</strong> de 10 lecciones</div>
+                        <div class="level-progress-pct" id="pctAdvanced">0%</div>
+                    </div>
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="fillAdvanced" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="level-footer">
+                    <div class="level-stat"><strong>10</strong> lecciones &middot; <strong>30</strong> tests</div>
+                    <div class="level-arrow">&rarr;</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- DESAFIO -->
+    <div class="challenge-section">
+        <a href="desafio.html" class="challenge-card">
+            <div class="challenge-glow"></div>
+            <div class="challenge-info">
+                <div class="challenge-badge">Desafio</div>
+                <div class="challenge-title">¿Listo para comprobar tus habilidades?</div>
+                <div class="challenge-desc">3 retos dificiles que pondran a prueba todo lo que aprendiste. Resuelve problemas reales de procesamiento de datos con PySpark.</div>
+                <div class="challenge-retos">
+                    <div class="challenge-reto"><div class="challenge-reto-icon">1</div>ETL completo</div>
+                    <div class="challenge-reto"><div class="challenge-reto-icon">2</div>Analisis de ventas</div>
+                    <div class="challenge-reto"><div class="challenge-reto-icon">3</div>Pipeline de datos</div>
+                </div>
+            </div>
+            <div class="challenge-cta">
+                <div class="challenge-stars">&#11088;&#11088;&#11088;</div>
+                <div class="challenge-btn">Aceptar Desafio</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>PySpark Playground &copy; 2026 &mdash; Proyecto educativo de codigo abierto</p>
+        <p style="font-size: 0.75rem; margin-top: 8px; opacity: 0.7;">Lecciones basadas en la <a href="https://spark.apache.org/docs/latest/api/python/user_guide/index.html" target="_blank" style="color: inherit; text-decoration: underline;">documentacion oficial de PySpark</a></p>
+    </div>
+
+    <script>
+        function updateBeginnerProgress() {
+            const total = 12;
+            const completed = JSON.parse(localStorage.getItem('pysparkCompleted')) || [];
+            const done = Math.min(completed.length, total);
+            const pct = Math.round((done / total) * 100);
+            
+            document.getElementById('completedBeginner').textContent = done;
+            document.getElementById('pctBeginner').textContent = pct + '%';
+            document.getElementById('fillBeginner').style.width = pct + '%';
+        }
+
+        function updateIntermediateProgress() {
+            const total = 10;
+            const completed = JSON.parse(localStorage.getItem('pysparkCompletedIntermedio')) || [];
+            const done = completed.length;
+            const pct = Math.round((done / total) * 100);
+            
+            document.getElementById('completedIntermediate').textContent = done;
+            document.getElementById('pctIntermediate').textContent = pct + '%';
+            document.getElementById('fillIntermediate').style.width = pct + '%';
+        }
+
+        function updateAdvancedProgress() {
+            const total = 10;
+            const completed = JSON.parse(localStorage.getItem('pysparkCompletedAvanzado')) || [];
+            const done = completed.length;
+            const pct = Math.round((done / total) * 100);
+            
+            document.getElementById('completedAdvanced').textContent = done;
+            document.getElementById('pctAdvanced').textContent = pct + '%';
+            document.getElementById('fillAdvanced').style.width = pct + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateBeginnerProgress();
+            updateIntermediateProgress();
+            updateAdvancedProgress();
+        });
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+</html>

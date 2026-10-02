@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySpark Playground - Leccion Avanzado</title>
+    <meta name="description" content="Editor interactivo de PySpark para avanzados. Escribe codigo Spark en el navegador y aprende UDFs, UDTFs, profiling y mas.">
+    <meta name="keywords" content="pyspark avanzado, editor python online, UDFs pyspark, UDTFs pyspark, profiling spark">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/webp" href="apache_spark_logo_icon.webp">
+    <meta property="og:title" content="PySpark Playground - Leccion Avanzado">
+    <meta property="og:description" content="Editor interactivo para aprender PySpark avanzado de forma practica.">
+    <meta name="twitter:card" content="summary">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --azul: #0a0a23; --naranja: #ff6b35; --naranja-claro: #ff8c5a; --rojo: #e74c3c; --amarillo: #f7c948; --verde: #00d4aa; --morado: #667eea; --morado-claro: #764ba2; --gris-claro: #f8f9fa; --gris-medio: #e9ecef; --texto: #333; --blanco: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gris-claro); color: var(--texto); height: 100vh; overflow: hidden; }
+        .header { background: var(--azul); color: var(--blanco); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+        .header-logo { font-size: 1.2rem; font-weight: bold; color: var(--naranja); }
+        .header-steps { font-size: 0.9rem; opacity: 0.8; }
+        .header-buttons { display: flex; gap: 10px; }
+        .main-container { display: flex; height: calc(100vh - 50px); }
+        .instructions-panel { width: 40%; min-width: 300px; background: var(--blanco); border-right: 2px solid var(--gris-medio); display: flex; flex-direction: column; overflow: hidden; }
+        .instructions-header { padding: 15px 20px; border-bottom: 1px solid var(--gris-medio); background: var(--gris-claro); }
+        .instructions-header h2 { font-size: 1.1rem; color: var(--azul); }
+        .instructions-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .instructions-content h3 { color: var(--naranja); margin: 15px 0 10px; font-size: 1rem; }
+        .instructions-content p { line-height: 1.6; margin-bottom: 10px; }
+        .instructions-content code { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; }
+        .instructions-content pre { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 10px 0; }
+        .instructions-content pre code { background: none; padding: 0; color: inherit; }
+        .editor-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-header { padding: 10px 15px; background: #282c34; color: #abb2bf; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .editor-container { flex: 1; overflow: hidden; }
+        .output-panel { height: 220px; min-height: 150px; background: #1e1e1e; border-top: 2px solid #444; display: flex; flex-direction: column; }
+        .output-header { padding: 8px 15px; background: #252526; color: #ccc; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .output-header span:first-child { display: flex; align-items: center; gap: 8px; }
+        .output-clear { background: none; border: none; color: #888; cursor: pointer; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; }
+        .output-clear:hover { background: #3c3c3c; color: #fff; }
+        .next-lesson-btn { background: var(--verde); color: var(--azul); border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 12px; border-radius: 4px; font-weight: 600; transition: all 0.2s; }
+        .next-lesson-btn:disabled { background: #3c3c3c; color: #666; cursor: not-allowed; }
+        .next-lesson-btn:not(:disabled):hover { background: #00b894; }
+        .next-lesson-btn:not(:disabled) { animation: glow 1.5s ease-in-out infinite; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--verde), 0 0 10px var(--verde); } 50% { box-shadow: 0 0 15px var(--verde), 0 0 25px var(--verde); } }
+        .output-container { flex: 1; overflow-y: auto; padding: 10px 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; }
+        .output-cell { margin-bottom: 10px; border-left: 3px solid var(--rojo); padding-left: 10px; }
+        .output-cell-prompt { color: #61afef; font-size: 0.8rem; margin-bottom: 2px; }
+        .output-cell-text { color: #abb2bf; white-space: pre; font-family: 'Consolas', 'Courier New', monospace; }
+        .output-cell-text.error { color: #e06c75; }
+        .output-welcome { color: #61afef; font-size: 0.85rem; margin-bottom: 2px; }
+        .output-welcome span { color: #98c379; }
+        .test-panel { height: 150px; min-height: 100px; background: #1e1e1e; border-top: 2px solid #444; display: flex; flex-direction: column; }
+        .test-header { padding: 8px 15px; background: #252526; color: #ccc; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .test-results { flex: 1; overflow-y: auto; padding: 10px 15px; font-family: 'Consolas', monospace; font-size: 0.85rem; }
+        .test-pass { color: #98c379; }
+        .test-fail { color: #e06c75; }
+        .test-info { color: #61afef; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: var(--rojo); color: white; }
+        .btn-primary:hover { background: #c0392b; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
+        .loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: var(--rojo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .pyodide-loading { display: none; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(231,76,60,0.1); border-radius: 20px; font-size: 0.75rem; color: var(--rojo); margin-left: 10px; }
+        .pyodide-loading.active { display: inline-flex; }
+        .pyodide-loading .spinner-xs { width: 12px; height: 12px; border: 2px solid rgba(231,76,60,0.3); border-top-color: var(--rojo); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .output-loading { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(231,76,60,0.1); border-bottom: 1px solid rgba(231,76,60,0.2); font-size: 0.85rem; color: var(--rojo); }
+        .output-loading.hidden { display: none; }
+        .output-loading .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(231,76,60,0.3); border-top-color: var(--rojo); border-radius: 50%; animation: spin 1s linear infinite; flex-shrink: 0; }
+        .loading-text { font-size: 1rem; }
+        .loading-subtext { font-size: 0.85rem; opacity: 0.8; margin-top: 8px; }
+        .loading-progress { width: 250px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-top: 15px; overflow: hidden; }
+        .loading-progress-bar { height: 100%; background: var(--rojo); border-radius: 3px; width: 0%; transition: width 0.3s ease; }
+        .step-nav { display: flex; gap: 5px; padding: 10px 15px; background: var(--gris-claro); border-bottom: 1px solid var(--gris-medio); overflow-x: auto; }
+        .step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--gris-medio); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .step-dot.active { background: var(--rojo); color: white; }
+        .step-dot.completed { background: var(--verde); color: var(--azul); }
+        .step-dot:hover { transform: scale(1.1); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--blanco); border-radius: 12px; padding: 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .modal-icon { font-size: 3rem; margin-bottom: 15px; }
+        .modal-title { font-size: 1.2rem; color: var(--azul); margin-bottom: 10px; font-weight: 600; }
+        .modal-message { color: #666; line-height: 1.5; margin-bottom: 20px; }
+        .modal-details { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left; font-family: 'Consolas', monospace; font-size: 0.8rem; color: #e06c75; max-height: 100px; overflow-y: auto; }
+        .modal-btn { padding: 10px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background: var(--rojo); color: white; transition: all 0.2s; }
+        .modal-btn:hover { background: #c0392b; }
+        .solution-btn { width: 100%; padding: 12px; margin-top: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .solution-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4); }
+        .solution-btn:active { transform: translateY(0); }
+        .guide-link { display: block; text-align: center; color: var(--rojo); font-size: 0.85rem; text-decoration: none; padding: 8px; margin-bottom: 5px; border-radius: 6px; transition: all 0.2s; }
+        .guide-link:hover { background: rgba(231,76,60,0.1); }
+        .guide-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 10001; padding: 20px; }
+        .guide-modal-overlay.active { display: flex; }
+        .guide-modal { background: var(--blanco); border-radius: 12px; width: 100%; max-width: 800px; max-height: 85vh; display: flex; flex-direction: column; animation: modalIn 0.3s ease; }
+        .guide-modal-header { padding: 20px 25px; border-bottom: 1px solid var(--gris-medio); display: flex; align-items: center; justify-content: space-between; }
+        .guide-modal-header h2 { font-size: 1.3rem; color: var(--azul); margin: 0; }
+        .guide-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; padding: 5px; line-height: 1; }
+        .guide-close-btn:hover { color: #333; }
+        .guide-modal-content { flex: 1; overflow-y: auto; padding: 25px; }
+        .guide-section { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid var(--gris-medio); }
+        .guide-section:last-child { border-bottom: none; margin-bottom: 0; }
+        .guide-section h3 { color: var(--rojo); font-size: 1.1rem; margin-bottom: 10px; }
+        .guide-section p { color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .guide-section pre { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 10px 0; font-size: 0.85rem; }
+        .guide-section code { font-family: 'Consolas', monospace; }
+
+        /* MOBILE TAB LAYOUT */
+        @media (max-width: 991px) {
+            .instructions-panel { max-height: 40vh; min-width: unset; width: 100%; border-right: none; border-bottom: 2px solid var(--gris-medio); }
+            .editor-panel { min-height: 60vh; }
+            .main-container { flex-direction: column; overflow-y: auto; }
+        }
+        @media (max-width: 767px) {
+            body { overflow: auto; height: auto; }
+            .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+            #mobileNav { top: 65px; }
+            .header-steps { display: none !important; }
+            .header-buttons .btn-text { display: none; }
+            .header-buttons .btn { width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: translateX(200vw); transition: transform 0.4s ease; }
+            .header-buttons .volver-btn { transform: translateX(90px) !important; }
+            body.output-active .header-buttons .volver-btn, body.editor-active .header-buttons .volver-btn { transform: translateX(0) !important; }
+            body.output-active .header-buttons .btn, body.editor-active .header-buttons .btn { transform: translateX(0); }
+            .instructions-panel { max-height: none; height: auto; border-right: none; }
+            .main-container { height: auto; overflow-y: auto; }
+            .guide-link, .solution-btn { display: none !important; }
+            #mobileNav { position: fixed; top: 50px; left: 0; right: 0; z-index: 999; }
+            .main-container { margin-top: 92px; }
+            .editor-panel { display: flex; flex-direction: column; height: 665px; overflow: hidden; position: relative; }
+            .editor-container { min-height: 400px; height: 50vh; }
+            .output-panel { position: absolute; bottom: 50%; left: 0; right: 0; height: 50%; transform: translateY(100%); transition: transform 0.4s ease; z-index: 10; }
+            .test-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; transform: translateY(100%); transition: transform 0.4s ease; z-index: 11; }
+            .panel-visible .output-panel, .panel-visible .test-panel { transform: translateY(0); }
+            .d-md-none.position-fixed.bottom-0 { bottom: 185px !important; transition: transform 0.3s ease; }
+            body.output-active .d-md-none.position-fixed.bottom-0 { transform: translateX(calc(100% + 60px)); }
+            .pyspark-btn { }
+            body.output-active .pyspark-btn, body.editor-active .pyspark-btn { display: flex !important; bottom: -10px !important; left: 50% !important; right: auto !important; transform: translateX(-50%); width: 150px !important; height: 150px !important; opacity: 0.5; }
+        }
+        #mobileNav { background: var(--azul); }
+        #mobileNav .nav-link { color: rgba(255,255,255,0.7); border: none; font-size: 0.9rem; padding: 8px 16px; }
+        #mobileNav .nav-link.active { color: var(--rojo); background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--rojo); }
+    </style>
+</head>
+<body>
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando entorno de Python...</div>
+        <div class="loading-subtext" id="loadingStatus">Inicializando Pyodide</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal">
+            <div class="modal-icon">&#9888;&#65039;</div>
+            <div class="modal-title">Revisa bien tu codigo</div>
+            <div class="modal-message">Algo no esta bien escrito. Revisa la sintaxis y vuelve a intentar.</div>
+            <div class="modal-details" id="modalDetails"></div>
+            <button class="modal-btn" onclick="closeModal()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <a href="index.html" class="header-logo" style="text-decoration:none;"><img src="apache_spark_logo_icon.webp" alt="PySpark" style="height:24px;vertical-align:middle;margin-right:6px;"> PySpark Playground <span style="color: var(--rojo);">- Nivel Avanzado</span></a>
+        <div class="header-steps d-none d-sm-block" id="stepInfo">Leccion 1 de 10</div>
+        <div class="pyodide-loading" id="pyodideLoading"><div class="spinner-xs"></div> Cargando entorno...</div>
+        <div class="header-buttons">
+            <a href="index.html" class="btn btn-secondary volver-btn" style="text-decoration:none;"><span class="d-inline d-sm-none">&larr;</span><span class="btn-text">Volver</span></a>
+            <button class="btn btn-secondary" onclick="resetCode()">&#8635; <span class="btn-text d-none d-sm-inline">Reiniciar</span></button>
+            <button class="btn btn-primary" onclick="runTests()">&#9654; <span class="btn-text d-none d-sm-inline">Ejecutar Test (Ctrl+Enter)</span></button>
+        </div>
+    </div>
+
+    <!-- MOBILE NAV TABS -->
+    <ul class="nav nav-tabs d-md-none" id="mobileNav">
+        <li class="nav-item">
+            <button class="nav-link active" onclick="switchTab('instructions')" type="button">&#128214; Instrucciones</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('editor')" type="button">&#9998; Editor</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('output')" type="button">&#128202; Resultado</button>
+        </li>
+    </ul>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        <!-- LEFT: INSTRUCTIONS -->
+        <div class="instructions-panel mobile-active" id="instructions">
+            <div class="step-nav" id="stepNav"></div>
+            <div class="instructions-header">
+                <h2 id="lessonTitle">Leccion 1: Python UDFs</h2>
+            </div>
+            <div class="instructions-content" id="instructionsContent"></div>
+            <div style="padding: 15px 20px; border-top: 1px solid var(--gris-medio);">
+                <a href="javascript:void(0)" class="guide-link" onclick="openGuide()">&#128214; Guia Informativa</a>
+                <button class="solution-btn" onclick="showSolution()">&#128161; Solucion (Ctrl+S)</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: EDITOR + OUTPUT -->
+        <div class="editor-panel" id="editorPanel">
+            <div class="editor-header">
+                <span>&#128221; main.py</span>
+                <span id="editorStatus">Python 3 + PySpark</span>
+            </div>
+            <div class="editor-container" id="editorContainer"></div>
+            
+            <div class="output-panel">
+                <div class="output-header">
+                    <span>&#128421;&#65039; Salida</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="output-clear" onclick="clearOutput()">Limpiar</button>
+                        <button class="next-lesson-btn" id="nextLessonBtn" onclick="goToNextLesson()" disabled>Siguiente leccion &rarr;</button>
+                    </div>
+                </div>
+                <div class="output-loading" id="outputLoading">
+                    <div class="spinner-sm"></div>
+                    <span id="outputLoadingMsg">Preparando entorno Python...</span>
+                </div>
+                <div class="output-container" id="outputContainer">
+                    <div class="output-welcome">&#9889; <span>PySpark Playground</span> - Salida</div>
+                    <div class="output-welcome" style="color: #666;">Ejecuta tu codigo para ver resultados aqui</div>
+                </div>
+            </div>
+            
+            <div class="test-panel">
+                <div class="test-header">
+                    <span>&#9889; Resultados de Tests</span>
+                    <span id="testCount">0/0 tests pasados</span>
+                </div>
+                <div class="test-results" id="testResults">
+                    <div class="test-info">Haz clic en "Ejecutar Test (Ctrl+Enter)" o presiona Ctrl+Enter para validar tu codigo.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE ACTION BUTTONS -->
+    <div class="d-md-none position-fixed bottom-0 end-0 p-3" style="z-index: 100;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn rounded-circle" onclick="openGuide()" style="width:48px;height:48px;font-size:1.2rem;background:linear-gradient(135deg, #2196F3 0%, #1976D2 100%);color:white;border:none;display:flex;align-items:center;justify-content:center;">&#128214;</button>
+        <button class="btn rounded-circle" onclick="showSolution()" style="width:48px;height:48px;font-size:1.2rem;background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);color:white;border:none;display:flex;align-items:center;justify-content:center;">&#128161;</button>
+    </div>
+    <button class="d-md-none position-fixed end-0 p-3 pyspark-btn" onclick="window.open('https://spark.apache.org/', '_blank')" style="z-index: 100;width:150px;height:150px;border:none;background:transparent;display:none;align-items:center;justify-content:center;bottom:-10px;left:50%;transform:translateX(-50%);">
+        <img src="pyspark_img.png" alt="PySpark" style="width:150px;height:150px;">
+    </button>
+
+    <!-- GUIDE MODAL -->
+    <div class="guide-modal-overlay" id="guideModal" onclick="if(event.target===this)closeGuide()">
+        <div class="guide-modal">
+            <div class="guide-modal-header">
+                <h2>&#128214; Guia de PySpark Avanzado</h2>
+                <button class="guide-close-btn" onclick="closeGuide()">&times;</button>
+            </div>
+            <div class="guide-modal-content">
+                <div class="guide-section">
+                    <h3>User Defined Functions (UDFs)</h3>
+                    <p>Las UDFs permiten crear funciones personalizadas que se ejecutan en los workers de Spark.</p>
+                    <pre><code>from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+@udf(returnType=StringType())
+def mayusculas(nombre):
+    return nombre.upper()
+
+df.withColumn("nombre_upper", mayusculas("nombre")).show()</code></pre>
+                </div>
+                <div class="guide-section">
+                    <h3>User Defined Table Functions (UDTFs)</h3>
+                    <p>Las UDTFs retornan multiples filas por cada fila de entrada usando yield.</p>
+                    <pre><code>from pyspark.sql.functions import udtf
+from pyspark.sql.types import StructType, StructField, StringType
+
+@udtf(returnType=StructType([StructField("word", StringType())]))
+def split_words(text):
+    for word in text.split(" "):
+        yield (word,)
+
+split_words("hola mundo").show()</code></pre>
+                </div>
+                <div class="guide-section">
+                    <h3>Spark UI</h3>
+                    <p>La Spark UI es la interfaz de monitoreo que se ejecuta en http://localhost:4040.</p>
+                    <pre><code># La Spark UI muestra:
+# - Jobs: trabajos ejecutados
+# - Stages: etapas de cada job
+# - Tasks: tareas paralelas
+# - Storage: datos cacheados
+# - Executors: recursos del cluster</code></pre>
+                </div>
+                <div class="guide-section">
+                    <h3>Profiling y Debugging</h3>
+                    <p>Usa cProfile y logging para identificar cuellos de botella en tu codigo.</p>
+                    <pre><code>import cProfile
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+cProfile.run('mi_funcion_spark()')</code></pre>
+                </div>
+                <div class="guide-section">
+                    <h3>Monitoreo con psutil</h3>
+                    <p>Monitorea recursos del sistema mientras ejecutas operaciones Spark.</p>
+                    <pre><code>import psutil
+
+print(f"CPU: {psutil.cpu_percent()}%")
+print(f"RAM: {psutil.virtual_memory().percent}%")</code></pre>
+                </div>
+                <div class="guide-section">
+                    <h3>Pandas UDFs y Plotting</h3>
+                    <p>Convierte DataFrames a Pandas para visualizaciones nativas.</p>
+                    <pre><code>import matplotlib.pyplot as plt
+
+pdf = df.toPandas()
+pdf.plot(kind="bar", x="nombre", y="edad")
+plt.show()</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PYODIDE -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+    
+    <!-- MONACO EDITOR -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- MOBILE TAB SWITCHING -->
+    <script>
+        function switchTab(tab) {
+            var instructions = document.querySelector('.instructions-panel');
+            var editorPanel = document.querySelector('.editor-panel');
+            var editorContainer = document.querySelector('.editor-container');
+            var tabs = document.querySelectorAll('#mobileNav .nav-link');
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            document.body.classList.remove('output-active');
+            document.body.classList.remove('editor-active');
+            if (tab === 'instructions') { tabs[0].classList.add('active'); instructions.style.display = 'flex'; editorPanel.style.display = 'none'; editorPanel.classList.remove('panel-visible'); }
+            else if (tab === 'editor') { tabs[1].classList.add('active'); instructions.style.display = 'none'; editorPanel.style.display = 'flex'; editorContainer.style.display = 'block'; editorPanel.classList.remove('panel-visible'); document.body.classList.add('editor-active'); if (window.monacoEditor) window.monacoEditor.layout(); }
+            else if (tab === 'output') { tabs[2].classList.add('active'); instructions.style.display = 'none'; editorPanel.style.display = 'flex'; editorPanel.classList.add('panel-visible'); document.body.classList.add('output-active'); if (window.monacoEditor) window.monacoEditor.layout(); }
+        }
+        if (window.innerWidth < 768) { document.querySelector('.editor-panel').style.display = 'none'; }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) { document.querySelector('.instructions-panel').style.display = 'flex'; document.querySelector('.editor-panel').style.display = 'flex'; if (window.monacoEditor) window.monacoEditor.layout(); }
+            else { var activeTab = document.querySelector('#mobileNav .nav-link.active'); if (activeTab && activeTab.textContent.includes('Instrucciones')) { document.querySelector('.editor-panel').style.display = 'none'; } else { document.querySelector('.instructions-panel').style.display = 'none'; } }
+        });
+    </script>
+
+    <script>
+        // ==================== LESSON DATA ====================
+        const lessons = [
+            {
+                id: 1,
+                title: "Python UDFs",
+                instructions: `<p>Las UDFs (User Defined Functions) permiten crear funciones personalizadas en PySpark.</p><h3>Ejemplo</h3><pre><code>from pyspark.sql.functions import udf\nfrom pyspark.sql.types import StringType\n\n@udf(returnType=StringType())\ndef saludar(nombre):\n    return f"Hola {nombre}"\n\ndf.withColumn("saludo", saludar("nombre")).show()</code></pre><h3>Objetivo</h3><p>Crea una UDF que convierta nombres a mayusculas.</p>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf\nfrom pyspark.sql.types import StringType\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28), ("Luis", 35)]\ndf = spark.createDataFrame(data, ["nombre", "edad"])\n\n# Crea una UDF que convierta nombre a mayusculas\n\n# Aplica la UDF`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf, upper\nfrom pyspark.sql.types import StringType\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28), ("Luis", 35)]\ndf = spark.createDataFrame(data, ["nombre", "edad"])\n\n@udf(returnType=StringType())\ndef a_mayusculas(nombre):\n    return nombre.upper()\n\ndf.withColumn("nombre_upper", a_mayusculas("nombre")).show()`,
+                tests: [
+                    { name: "udf importada", validation: `'udf' in user_code`, error: "Debes importar udf" },
+                    { name: "Decorator @udf", validation: `'@udf' in user_code or 'udf(returnType' in user_code`, error: "Debes usar el decorator @udf" },
+                    { name: "withColumn() aplicado", validation: `'withColumn' in user_code`, error: "Debes aplicar la UDF con withColumn()" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Python UDTFs",
+                instructions: `<p>Las UDTFs (User Defined Table Functions) retornan multiples filas.</p><h3>Ejemplo</h3><pre><code>from pyspark.sql.functions import udtf\nfrom pyspark.sql.types import StructType, StructField, StringType\n\n@udtf(returnType=StructType([StructField("word", StringType())]))\ndef split_words(text):\n    for word in text.split(" "):\n        yield (word,)\n\nsplit_words("hola mundo").show()</code></pre><h3>Objetivo</h3><p>Crea una UDTF que separe una cadena por comas.</p>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udtf\nfrom pyspark.sql.types import StructType, StructField, StringType\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\n# Crea una UDTF que separe texto por comas\n\n# Prueba con "manzana,pera,uva"`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udtf\nfrom pyspark.sql.types import StructType, StructField, StringType\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\n@udtf(returnType=StructType([StructField("item", StringType())]))\ndef separar_por_comas(texto):\n    for item in texto.split(","):\n        yield (item.strip(),)\n\nseparar_por_comas("manzana,pera,uva").show()`,
+                tests: [
+                    { name: "udtf importada", validation: `'udtf' in user_code`, error: "Debes importar udtf" },
+                    { name: "Decorator @udtf", validation: `'@udtf' in user_code or 'udtf(returnType' in user_code`, error: "Debes usar el decorator @udtf" },
+                    { name: "Yield usado", validation: `'yield' in user_code`, error: "Debes usar yield para retornar filas" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Spark UI",
+                instructions: `<p>La Spark UI es la interfaz de monitoreo de Apache Spark.</p><h3>Conceptos clave</h3><pre><code># La Spark UI se ejecuta en http://localhost:4040\n# Muestra:\n# - Jobs: trabajos ejecutados\n# - Stages: etapas de cada job\n# - Tasks: tareas paralelas\n# - Storage: datos cacheados\n# - Executors: recursos del cluster</code></pre><h3>Objetivo</h3><p>Responde las 3 preguntas escribiendo tus respuestas como comentarios en el editor. Cada respuesta debe estar despues de la pregunta correspondiente.</p><h3>Ejemplo de respuesta</h3><pre><code># 1. En que puerto se ejecuta la Spark UI?\n# -> Puerto 4040\n# 2. Que informacion muestra?\n# -> Jobs, Stages, Tasks, Storage y Executors\n# 3. Como acceder a ella?\n# -> Automaticamente al crear una SparkSession en localhost:4040</code></pre>`,
+                seedCode: `# Responde las 3 preguntas como comentarios:\n\n# 1. En que puerto se ejecuta la Spark UI?\n# ->\n\n# 2. Que informacion muestra?\n# ->\n\n# 3. Como acceder a ella?\n# ->`,
+                solution: `# Responde las 3 preguntas como comentarios:\n\n# 1. En que puerto se ejecuta la Spark UI?\n# -> Puerto 4040\n\n# 2. Que informacion muestra?\n# -> Jobs, Stages, Tasks, Storage y Executors\n\n# 3. Como acceder a ella?\n# -> Automaticamente al crear una SparkSession en localhost:4040`,
+                tests: [
+                    { name: "Pregunta 1: Puerto 4040", validation: `'4040' in user_code`, error: "Debes responder con el puerto 4040" },
+                    { name: "Pregunta 2: Jobs y Stages", validation: `('jobs' in user_code.lower() or 'Jobs' in user_code) and ('stages' in user_code.lower() or 'Stages' in user_code)`, error: "Debes mencionar al menos Jobs y Stages" },
+                    { name: "Pregunta 3: Acceso automatico", validation: `('automatic' in user_code.lower() or 'auto' in user_code.lower() or 'localhost' in user_code.lower() or 'spark session' in user_code.lower() or 'sparksession' in user_code.lower())`, error: "Debes explicar que se accede automaticamente (localhost o SparkSession)" }
+                ],
+                precalculatedOutput: `=================================================================
+                        Spark UI - http://localhost:4040
+=================================================================
+
+--- Jobs Tab -----------------------------------------------------
+  Job ID  Description          Stages  Submitted           Duration
+  ------  -------------------  ------  ------------------  --------
+  0       count at <unknown>   2       2026-01-15 10:23:01  1.42 s
+  1       show at <unknown>    3       2026-01-15 10:23:04  0.87 s
+  2       parquet at <unknown> 1       2026-01-15 10:23:05  0.31 s
+
+  Status: 3 Succeeded | 0 Running | 0 Failed
+
+--- Stages Tab ---------------------------------------------------
+  Stage ID  Description           Tasks  Input     Output    Duration
+  --------  --------------------  -----  --------  --------  --------
+  0         parallelize at ...    8      12.5 MB   0 B       0.65 s
+  1         hashpartition at ...  8      12.5 MB   12.5 MB   0.48 s
+  2         collect at ...        8      12.5 MB   0 B       0.29 s
+
+--- Executors Tab ------------------------------------------------
+  Executor ID  Status    Cores  Memory    Tasks  Input      Shuffle
+  -----------  --------  -----  --------  -----  ---------  --------
+  driver       RUNNING   4      3.6 GB    24     12.5 MB    8.2 MB
+  executor-1   RUNNING   2      2.0 GB    12     6.3 MB     4.1 MB
+  executor-2   RUNNING   2      2.0 GB    12     6.2 MB     4.1 MB
+
+--- Storage Tab --------------------------------------------------
+  Storage Level      RDD Name              Size      Cached Partitions
+  -----------------  --------------------  --------  -----------------
+  Memory Deserialized rdd_0_raw_lines      12.5 MB   8 / 8
+
+--- Environment Tab ----------------------------------------------
+  Spark version:           3.5.0
+  Python version:          3.11.7
+  Java version:            17.0.9
+  Master:                  local[*]
+  App name:                SparkUI
+  Total physical memory:   15.6 GB
+  Available memory:        8.3 GB
+
+=================================================================`
+            },
+            {
+                id: 4,
+                title: "Monitor con top y ps",
+                instructions: `<p>Monitorea los recursos del sistema mientras ejecutas Spark.</p><h3>Ejemplo</h3><pre><code># En terminal Linux/Mac:\ntop -p $(pgrep -f pyspark)\nps aux | grep pyspark\n\n# En Python:\nimport psutil\nprint(f"CPU: {psutil.cpu_percent()}%")\nprint(f"RAM: {psutil.virtual_memory().percent}%")</code></pre><h3>Objetivo</h3><p>Escribe el codigo para monitorear CPU y RAM usando psutil.</p>`,
+                seedCode: `# Codigo para monitorear recursos del sistema\n# Importa psutil y muestra CPU y RAM`,
+                solution: `import psutil\n\nprint(f"CPU: {psutil.cpu_percent()}%")\nprint(f"RAM: {psutil.virtual_memory().percent}%")`,
+                tests: [
+                    { name: "psutil importado", validation: `'psutil' in user_code`, error: "Debes importar psutil" },
+                    { name: "CPU monitoreada", validation: `'cpu_percent' in user_code`, error: "Debes usar cpu_percent()" },
+                    { name: "RAM monitoreada", validation: `'virtual_memory' in user_code or 'memory' in user_code`, error: "Debes monitorear la memoria" }
+                ],
+                successMessage: "Monitoreo ejecutado con exito - CPU y RAM verificadas correctamente"
+            },
+            {
+                id: 5,
+                title: "PySpark Profilers",
+                instructions: `<p>Usa profiling para identificar cuellos de botella en tu codigo PySpark.</p><h3>Ejemplo</h3><pre><code>import cProfile\n\ndef mi_operacion():\n    df = spark.range(1000000)\n    df.count()\n\ncProfile.run('mi_operacion()')</code></pre><h3>Objetivo</h3><p>Escribe codigo que use cProfile para perfomar una operacion de Spark.</p>`,
+                seedCode: `import cProfile\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\n# Define una funcion que cree y cuente un DataFrame\n\n# Usa cProfile para medir`,
+                solution: `import cProfile\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndef operacion_spark():\n    df = spark.range(1000000)\n    df.count()\n\ncProfile.run('operacion_spark()')`,
+                tests: [
+                    { name: "cProfile importado", validation: `'cProfile' in user_code`, error: "Debes importar cProfile" },
+                    { name: "cProfile.run() usado", validation: `'cProfile.run' in user_code`, error: "Debes usar cProfile.run()" },
+                    { name: "Funcion definida", validation: `'def ' in user_code`, error: "Debes definir una funcion" }
+                ]
+            },
+            {
+                id: 6,
+                title: "Display Stacktraces",
+                instructions: `<p>Interpreta y resuelve errores comunes de PySpark con manejo de excepciones.</p><h3>Errores comunes</h3><pre><code># AnalysisException: Columna no existe\n# -> Verificar nombres con df.columns\n\n# Py4JJavaError: Error en Java\n# -> Revisar stacktrace completo\n\n# KeyError: Llave no encontrada\n# -> Validar existencia antes de usar\n\n# TypeError: Tipo incorrecto\n# -> Verificar tipos con df.dtypes</code></pre><h3>Requisitos</h3><ol><li>Importa <code>AnalysisException</code> de <code>pyspark.sql.utils</code></li><li>Crea un DataFrame con 3 columnas (nombre, edad, ciudad)</li><li>Usa <code>try/except</code> para capturar errores al seleccionar una columna inexistente</li><li>Imprime las columnas correctas con <code>df.columns</code></li><li>Muestra los tipos de datos con <code>df.dtypes</code></li><li>Usa <code>df.printSchema()</code> para verificar el esquema</li></ol><h3>Ejemplo de try/except</h3><pre><code>try:\n    df.select("columna_inexistente")\nexcept AnalysisException as e:\n    print(f"Error: {e}")\n    print(f"Columnas disponibles: {df.columns}")</code></pre>`,
+                seedCode: `from pyspark.sql import SparkSession\n\n# 1. Importa AnalysisException de pyspark.sql.utils\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28, "CDMX"), ("Luis", 35, "Guadalajara")]\ndf = spark.createDataFrame(data, ["nombre", "edad", "ciudad"])\n\n# 2. Usa try/except para capturar error al seleccionar columna inexistente\n\n# 3. Imprime las columnas correctas\n\n# 4. Muestra los tipos de datos con df.dtypes\n\n# 5. Muestra el esquema con printSchema()`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.utils import AnalysisException\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28, "CDMX"), ("Luis", 35, "Guadalajara")]\ndf = spark.createDataFrame(data, ["nombre", "edad", "ciudad"])\n\ntry:\n    df.select("salario")\nexcept AnalysisException as e:\n    print(f"Error capturado: {e}")\n\nprint(f"Columnas disponibles: {df.columns}")\nprint(f"Tipos de datos: {df.dtypes}")\ndf.printSchema()`,
+                tests: [
+                    { name: "AnalysisException importado", validation: `'AnalysisException' in user_code`, error: "Debes importar AnalysisException de pyspark.sql.utils" },
+                    { name: "try/except usado", validation: `'try' in user_code and 'except' in user_code`, error: "Debes usar try/except para capturar errores" },
+                    { name: "df.columns impreso", validation: `'.columns' in user_code`, error: "Debes imprimir df.columns" },
+                    { name: "df.dtypes usado", validation: `'.dtypes' in user_code`, error: "Debes usar df.dtypes para ver tipos" },
+                    { name: "printSchema() usado", validation: `'printSchema' in user_code`, error: "Debes usar printSchema()" }
+                ],
+                successMessage: "Stacktrace manejado correctamente - columnas y esquema verificados exitosamente"
+            },
+            {
+                id: 7,
+                title: "Python Worker Logging",
+                instructions: `<p>Configura logging para debuggear workers de PySpark.</p><h3>Ejemplo</h3><pre><code>import logging\n\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\nlogger.info("Iniciando proceso")\nlogger.warning("Advertencia")\nlogger.error("Error")</code></pre><h3>Objetivo</h3><p>Configura un logger basico con nivel INFO.</p>`,
+                seedCode: `import logging\n\n# Configura logging basico con nivel INFO\n\n# Crea un logger\n\n# Log un mensaje info`,
+                solution: `import logging\n\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\nlogger.info("Proceso iniciado correctamente")`,
+                tests: [
+                    { name: "logging importado", validation: `'logging' in user_code`, error: "Debes importar logging" },
+                    { name: "basicConfig usado", validation: `'basicConfig' in user_code`, error: "Debes usar logging.basicConfig()" },
+                    { name: "Logger creado", validation: `'getLogger' in user_code`, error: "Debes crear un logger con getLogger()" }
+                ]
+            },
+            {
+                id: 8,
+                title: "IDE Debugging",
+                instructions: `<p>Debuggea codigo PySpark con breakpoints y pdb.</p><h3>Ejemplo</h3><pre><code>import pdb\n\ndef mi_funcion():\n    df = spark.range(10)\n    result = df.count()\n    pdb.set_trace()  # Breakpoint\n    return result</code></pre><h3>Objetivo</h3><p>Escribe una funcion con un breakpoint usando pdb.</p>`,
+                seedCode: `import pdb\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\n# Define una funcion con breakpoint`,
+                solution: `import pdb\nfrom pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndef mi_funcion():\n    df = spark.range(10)\n    result = df.count()\n    pdb.set_trace()\n    return result`,
+                tests: [
+                    { name: "pdb importado", validation: `'pdb' in user_code`, error: "Debes importar pdb" },
+                    { name: "pdb.set_trace() usado", validation: `'pdb.set_trace' in user_code`, error: "Debes usar pdb.set_trace()" },
+                    { name: "Funcion definida", validation: `'def ' in user_code`, error: "Debes definir una funcion" }
+                ]
+            },
+            {
+                id: 9,
+                title: "Plotting nativo",
+                instructions: `<p>PySpark tiene plotting integrado con Pandas UDFs y visualizacion.</p><h3>Ejemplo</h3><pre><code># Conversion a Pandas para plotting\nimport matplotlib.pyplot as plt\n\npdf = df.toPandas()\npdf.plot(kind="bar", x="nombre", y="edad")\nplt.show()</code></pre><h3>Objetivo</h3><p>Escribe codigo para convertir un DataFrame a Pandas.</p>`,
+                seedCode: `from pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28), ("Luis", 35), ("Maria", 22)]\ndf = spark.createDataFrame(data, ["nombre", "edad"])\n\n# Convierte el DataFrame a Pandas`,
+                solution: `from pyspark.sql import SparkSession\n\nspark = SparkSession.builder.appName("Test").getOrCreate()\n\ndata = [("Ana", 28), ("Luis", 35), ("Maria", 22)]\ndf = spark.createDataFrame(data, ["nombre", "edad"])\n\npdf = df.toPandas()\nprint(pdf)`,
+                tests: [
+                    { name: "toPandas() usado", validation: `'toPandas' in user_code`, error: "Debes usar toPandas()" },
+                    { name: "Resultado impreso", validation: `'print' in user_code`, error: "Debes imprimir el resultado" }
+                ]
+            },
+            {
+                id: 10,
+                title: "Proyecto Final",
+                instructions: `<p>Pipeline completo con UDFs, manejo de errores, optimizacion y analisis avanzado.</p><h3>Requisitos</h3><ol><li>Crea una SparkSession con <code>config("spark.sql.shuffle.partitions", "4")</code></li><li>Crea un DataFrame con 8 empleados (nombre, salario, departamento, anios_experiencia)</li><li>Crea una UDF que clasifique el salario (Alto > 50000, Medio > 30000, Bajo)</li><li>Aplica <code>try/except</code> para capturar errores al filtrar una columna inexistente</li><li>Filtra empleados con salario mayor a 25000 usando <code>filter()</code></li><li>Agrupa por departamento y muestra: total de empleados, salario promedio y maximo con <code>agg()</code></li><li>Ordena por salario promedio descendente con <code>orderBy()</code></li><li>Guarda el resultado en formato Parquet con <code>write.mode("overwrite")</code></li></ol><h3>Datos</h3><pre><code>empleados = [
+    ("Ana", 60000, "IT", 5),
+    ("Luis", 45000, "Ventas", 3),
+    ("Maria", 35000, "IT", 2),
+    ("Pedro", 70000, "RH", 8),
+    ("Sofia", 25000, "Ventas", 1),
+    ("Carlos", 55000, "IT", 6),
+    ("Laura", 30000, "RH", 2),
+    ("Diego", 40000, "Ventas", 4)
+]</code></pre><h3>Ejemplo de UDF</h3><pre><code>@udf(returnType=StringType())\ndef clasificar(salario):\n    if salario > 50000: return "Alto"\n    elif salario > 30000: return "Medio"\n    return "Bajo"</code></pre>`,
+                seedCode: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf, col, count, avg, max as _max\nfrom pyspark.sql.types import StringType\n\n# 1. Crea SparkSession con shuffle partitions = 4\n\nspark = SparkSession.builder.appName("ProyectoFinal")\\\n    .config("spark.sql.shuffle.partitions", "4")\\\n    .getOrCreate()\n\nempleados = [\n    ("Ana", 60000, "IT", 5),\n    ("Luis", 45000, "Ventas", 3),\n    ("Maria", 35000, "IT", 2),\n    ("Pedro", 70000, "RH", 8),\n    ("Sofia", 25000, "Ventas", 1),\n    ("Carlos", 55000, "IT", 6),\n    ("Laura", 30000, "RH", 2),\n    ("Diego", 40000, "Ventas", 4)\n]\ndf = spark.createDataFrame(empleados, ["nombre", "salario", "departamento", "anios"])\n\n# 2. Crea UDF de clasificacion de salario\n\n# 3. Aplica try/except para capturar error de columna inexistente\n\n# 4. Filtra salario > 25000\n\n# 5. GroupBy departamento con agg (count, avg, max)\n\n# 6. Ordena por salario promedio descendente\n\n# 7. Guarda en Parquet`,
+                solution: `from pyspark.sql import SparkSession\nfrom pyspark.sql.functions import udf, col, count, avg, max as _max\nfrom pyspark.sql.types import StringType\nfrom pyspark.sql.utils import AnalysisException\n\nspark = SparkSession.builder.appName("ProyectoFinal")\\\n    .config("spark.sql.shuffle.partitions", "4")\\\n    .getOrCreate()\n\nempleados = [\n    ("Ana", 60000, "IT", 5),\n    ("Luis", 45000, "Ventas", 3),\n    ("Maria", 35000, "IT", 2),\n    ("Pedro", 70000, "RH", 8),\n    ("Sofia", 25000, "Ventas", 1),\n    ("Carlos", 55000, "IT", 6),\n    ("Laura", 30000, "RH", 2),\n    ("Diego", 40000, "Ventas", 4)\n]\ndf = spark.createDataFrame(empleados, ["nombre", "salario", "departamento", "anios"])\n\n@udf(returnType=StringType())\ndef clasificar_salario(salario):\n    if salario > 50000: return "Alto"\n    elif salario > 30000: return "Medio"\n    else: return "Bajo"\n\ndf = df.withColumn("nivel", clasificar_salario("salario"))\n\ntry:\n    df.select("bonus")\nexcept AnalysisException:\n    print("Columna no encontrada, usando columnas correctas")\n\nresultado = df.filter(col("salario") > 25000) \\\n    .groupBy("departamento") \\\n    .agg(\n        count("*").alias("total_empleados"),\n        avg("salario").alias("salario_promedio"),\n        _max("salario").alias("salario_max")\n    ) \\\n    .orderBy(col("salario_promedio").desc())\n\nresultado.show()\nresultado.write.mode("overwrite").parquet("output/empleados.parquet")`,
+                tests: [
+                    { name: "SparkSession con config", validation: `'SparkSession' in user_code and 'shuffle.partitions' in user_code`, error: "Debes crear SparkSession con config shuffle.partitions" },
+                    { name: "UDF creada con @udf", validation: `'@udf' in user_code or 'udf(returnType' in user_code`, error: "Debes crear una UDF con @udf" },
+                    { name: "try/except usado", validation: `'try' in user_code and 'except' in user_code`, error: "Debes usar try/except para capturar errores" },
+                    { name: "filter() por salario", validation: `'filter' in user_code and '25000' in user_code`, error: "Debes filtrar con filter() salario > 25000" },
+                    { name: "agg() con count, avg y max", validation: `'agg' in user_code and 'count' in user_code and 'avg' in user_code and 'max' in user_code`, error: "Debes usar agg() con count, avg y max" },
+                    { name: "orderBy descendente", validation: `'orderBy' in user_code or 'sort' in user_code`, error: "Debes ordenar con orderBy() o sort()" },
+                    { name: "Guardado en Parquet", validation: `'parquet' in user_code and 'write' in user_code`, error: "Debes guardar con write().parquet()" }
+                ],
+                successMessage: "Pipeline avanzado completado - 8 empleados procesados con UDF, filtrado, agregacion y guardado en Parquet"
+            }
+        ];
+
+        // ==================== STATE ====================
+        let pyodide = null;
+        let editor = null;
+        let currentStep = 0;
+        let completedSteps = [];
+        let cellCounter = 0;
+
+        const STORAGE_KEY = 'pysparkCompletedAvanzado';
+        const urlParams = new URLSearchParams(window.location.search);
+        const lessonParam = urlParams.get('lesson');
+        if (lessonParam !== null) currentStep = parseInt(lessonParam);
+
+        // ==================== GUIDE MODAL ====================
+        function openGuide() { document.getElementById('guideModal').classList.add('active'); }
+        function closeGuide() { document.getElementById('guideModal').classList.remove('active'); }
+
+        // ==================== PYODIDE ====================
+        async function initPyodide() {
+            const progressBar = document.getElementById('loadingProgressBar');
+            const headerLoading = document.getElementById('pyodideLoading');
+            const outputLoading = document.getElementById('outputLoading');
+            
+            headerLoading.classList.add('active');
+            outputLoading.classList.remove('hidden');
+            
+            updateLoadingStatus("Descargando Python y PySpark (~80MB, solo la primera vez)...");
+            progressBar.style.width = '10%';
+            
+            const progressInterval = setInterval(() => {
+                const current = parseFloat(progressBar.style.width);
+                if (current < 90) { progressBar.style.width = (current + 1) + '%'; }
+            }, 500);
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+            });
+            
+            clearInterval(progressInterval);
+            progressBar.style.width = '50%';
+            updateLoadingStatus("Inicializando...");
+            
+            const mplProgress = setInterval(() => {
+                const current = parseFloat(progressBar.style.width);
+                if (current < 95) { progressBar.style.width = (current + 1) + '%'; }
+            }, 300);
+            
+            clearInterval(mplProgress);
+            progressBar.style.width = '100%';
+            updateLoadingStatus("Listo!");
+            
+            outputLoading.style.background = 'rgba(231,76,60,0.15)';
+            setTimeout(() => { outputLoading.classList.add('hidden'); headerLoading.classList.remove('active'); }, 2000);
+            
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 500);
+        }
+
+        function updateLoadingStatus(text) {
+            document.getElementById('loadingStatus').textContent = text;
+        }
+
+        // ==================== OUTPUT PANEL ====================
+        function clearOutput() {
+            const container = document.getElementById('outputContainer');
+            container.innerHTML = '';
+            cellCounter = 0;
+        }
+        
+        function writeToOutput(text, isError = false) {
+            const container = document.getElementById('outputContainer');
+            const cell = document.createElement('div');
+            cell.className = 'output-cell';
+            const prompt = document.createElement('div');
+            prompt.className = 'output-cell-prompt';
+            prompt.textContent = isError ? 'Error:' : `Out [${++cellCounter}]:`;
+            const content = document.createElement('div');
+            content.className = 'output-cell-text' + (isError ? ' error' : '');
+            content.textContent = text;
+            cell.appendChild(prompt);
+            cell.appendChild(content);
+            container.appendChild(cell);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function parseDataFromCode(code) {
+            var dataMap = {};
+            var lines = code.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var m = lines[i].match(/^(\w+)\s*=\s*\[/);
+                if (m && lines[i].indexOf('(') > -1) {
+                    var varName = m[1];
+                    var arrLines = [lines[i]];
+                    var depth = (lines[i].match(/\(/g) || []).length - (lines[i].match(/\)/g) || []).length;
+                    for (var j = i + 1; j < lines.length && depth > 0; j++) {
+                        arrLines.push(lines[j]);
+                        depth += (lines[j].match(/\(/g) || []).length - (lines[j].match(/\)/g) || []).length;
+                    }
+                    var arrStr = arrLines.join('');
+                    var tuples = [];
+                    var re = /\(([^)]+)\)/g;
+                    var tm;
+                    while ((tm = re.exec(arrStr)) !== null) {
+                        tuples.push(tm[1].split(',').map(function(s) { return s.trim().replace(/['"]/g, ''); }));
+                    }
+                    if (tuples.length > 0) dataMap[varName] = tuples;
+                }
+            }
+            return dataMap;
+        }
+
+        function parseColumnsFromCode(code) {
+            var m = code.match(/createDataFrame\s*\(\s*\w+\s*,\s*\[([^\]]+)\]/);
+            if (m) return m[1].split(',').map(function(s) { return s.trim().replace(/['"]/g, ''); });
+            return null;
+        }
+
+        function parseSchemaFromCode(code) {
+            var fields = [];
+            var re = /StructField\s*\(\s*['"](\w+)['"]\s*,\s*(\w+)\s*\(/g;
+            var m;
+            var typeMap = {
+                'StringType': 'string', 'IntegerType': 'integer', 'LongType': 'long',
+                'DoubleType': 'double', 'FloatType': 'float', 'BooleanType': 'boolean',
+                'ShortType': 'short', 'ByteType': 'byte', 'DateType': 'date',
+                'TimestampType': 'timestamp', 'DecimalType': 'decimal'
+            };
+            while ((m = re.exec(code)) !== null) {
+                var typeName = typeMap[m[2]] || m[2].toLowerCase();
+                fields.push({ name: m[1], type: typeName });
+            }
+            if (fields.length > 0) return fields;
+            var m2 = code.match(/createDataFrame\s*\(\s*\w+\s*,\s*\[([^\]]+)\]/);
+            if (m2) return m2[1].split(',').map(function(s) { return { name: s.trim().replace(/['"]/g, ''), type: 'string' }; });
+            return null;
+        }
+
+        function inferTypesFromData(data) {
+            if (!data || data.length === 0) return null;
+            var numCols = data[0].length;
+            var fields = [];
+            for (var c = 0; c < numCols; c++) {
+                var allInt = true, allNum = true;
+                for (var r = 0; r < data.length; r++) {
+                    var v = String(data[r][c]);
+                    if (!/^-?\d+$/.test(v)) { allInt = false; }
+                    if (!/^-?\d+(\.\d+)?$/.test(v)) { allNum = false; }
+                }
+                fields.push({ name: '_c' + c, type: allInt ? 'integer' : (allNum ? 'double' : 'string') });
+            }
+            return fields;
+        }
+
+        function simulateShow(data, columns, limit) {
+            limit = limit || 20;
+            if (!columns) {
+                if (data && data.length > 0) columns = data[0].map(function(_, i) { return '_c' + i; });
+                else return '+---+\n|  |\n+---+\n(no data)\n+---+';
+            }
+            var colWidths = columns.map(function(c) { return c.length; });
+            var rows = data ? data.slice(0, limit) : [];
+            for (var i = 0; i < rows.length; i++) {
+                for (var j = 0; j < rows[i].length; j++) {
+                    if (String(rows[i][j]).length > colWidths[j]) colWidths[j] = String(rows[i][j]).length;
+                }
+            }
+            var sep = '+' + colWidths.map(function(w) { return '-'.repeat(w + 2); }).join('+') + '+';
+            var header = '|' + columns.map(function(c, i) { return ' ' + c.padEnd(colWidths[i]) + ' '; }).join('|') + '|';
+            var result = sep + '\n' + header + '\n' + sep + '\n';
+            for (var i = 0; i < rows.length; i++) {
+                result += '|' + rows[i].map(function(v, j) { return ' ' + String(v).padEnd(colWidths[j]) + ' '; }).join('|') + '|\n';
+            }
+            result += sep + '\nonly showing top ' + Math.min(rows.length, limit) + ' rows\n';
+            return result;
+        }
+
+        function simulatePrintSchema(fields) {
+            if (!fields || fields.length === 0) return 'root\n |-- (empty schema)\n';
+            var result = 'root\n';
+            for (var i = 0; i < fields.length; i++) {
+                if (typeof fields[i] === 'string') {
+                    result += ' |-- ' + fields[i] + ': string (nullable = true)\n';
+                } else {
+                    result += ' |-- ' + fields[i].name + ': ' + fields[i].type + ' (nullable = true)\n';
+                }
+            }
+            return result;
+        }
+
+        function simulateDescribe(data, columns) {
+            if (!data || !columns) return 'summary | _c0\n ------- | ---\n';
+            var summary = ['count', 'mean', 'stddev', 'min', 'max'];
+            var result = '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            result += '|summary|' + columns.map(function(c) { return c.padEnd(8); }).join('|') + '|\n';
+            result += '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            for (var s = 0; s < summary.length; s++) {
+                result += '|' + summary[s].padEnd(7) + '|' + columns.map(function() { return ('*' + Math.floor(Math.random() * 90 + 10)).padEnd(8); }).join('|') + '|\n';
+            }
+            result += '+-------+' + columns.map(function() { return '--------+'; }).join('') + '\n';
+            return result;
+        }
+
+        function simulateSparkOutput(code) {
+            var lines = code.split('\n');
+            var dataMap = parseDataFromCode(code);
+            var columns = parseColumnsFromCode(code);
+            var schemaFields = parseSchemaFromCode(code);
+            var output = [];
+            var dfVars = [];
+            var hasStructType = code.indexOf('StructType') > -1;
+            var hasPrintSchema = code.indexOf('printSchema') > -1;
+            var hasShow = /\.show\s*\(/.test(code);
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                var dfMatch = line.match(/(\w+)\s*=\s*spark\.createDataFrame/);
+                if (dfMatch) {
+                    var varName = dfMatch[1];
+                    var dataName = line.match(/createDataFrame\s*\(\s*(\w+)/);
+                    if (dataName && dataMap[dataName[1]]) {
+                        dfVars.push({ name: varName, data: dataMap[dataName[1]], columns: columns, schema: schemaFields });
+                    } else {
+                        dfVars.push({ name: varName, data: [], columns: columns, schema: schemaFields });
+                    }
+                }
+                var readMatch = line.match(/(\w+)\s*=\s*spark\.read\.(csv|json|parquet|text|orc|jdbc|delta|avro)/);
+                if (readMatch) {
+                    var readVarName = readMatch[1];
+                    var readFormat = readMatch[2];
+                    var isHeader = /header\s*=\s*True/.test(line);
+                    var inferSchema = /inferSchema\s*=\s*True/.test(line);
+                    var readColumns, readData;
+                    if (readFormat === 'csv' && isHeader) {
+                        readColumns = ['id', 'nombre', 'edad', 'ciudad'];
+                        readData = [
+                            ['1', 'Ana', '28', 'CDMX'],
+                            ['2', 'Luis', '35', 'Guadalajara'],
+                            ['3', 'Maria', '22', 'Monterrey'],
+                            ['4', 'Pedro', '40', 'CDMX'],
+                            ['5', 'Sofia', '19', 'Puebla']
+                        ];
+                    } else if (readFormat === 'json') {
+                        readColumns = ['id', 'nombre', 'edad'];
+                        readData = [
+                            ['1', 'Ana', '28'],
+                            ['2', 'Luis', '35'],
+                            ['3', 'Maria', '22']
+                        ];
+                    } else if (readFormat === 'parquet') {
+                        readColumns = ['id', 'nombre', 'edad', 'salario'];
+                        readData = [
+                            ['1', 'Ana', '28', '50000'],
+                            ['2', 'Luis', '35', '60000'],
+                            ['3', 'Maria', '22', '45000']
+                        ];
+                    } else {
+                        readColumns = ['col1', 'col2', 'col3'];
+                        readData = [
+                            ['val1', 'val2', 'val3'],
+                            ['val4', 'val5', 'val6']
+                        ];
+                    }
+                    dfVars.push({ name: readVarName, data: readData, columns: readColumns, schema: null });
+                }
+            }
+
+            var currentDf = dfVars.length > 0 ? dfVars[dfVars.length - 1] : null;
+
+            if (hasStructType && currentDf && !hasPrintSchema && !hasShow) {
+                output.push(simulatePrintSchema(schemaFields || currentDf.columns));
+            }
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line.match(/\.show\s*\(/) || line === '.show()') {
+                    if (currentDf) {
+                        var limit = 20;
+                        var lm = line.match(/\.show\s*\(\s*(\d+)/);
+                        if (lm) limit = parseInt(lm[1]);
+                        output.push(simulateShow(currentDf.data, currentDf.columns, limit));
+                    }
+                }
+                if (line.match(/\.printSchema\s*\(/) || line === '.printSchema()') {
+                    if (currentDf) output.push(simulatePrintSchema(schemaFields || currentDf.columns));
+                }
+                if (line.match(/\.describe\s*\(/) || line === '.describe()') {
+                    if (currentDf) output.push(simulateDescribe(currentDf.data, currentDf.columns));
+                }
+                if (line.match(/^print\s*\(/)) {
+                    var pm = line.match(/^print\s*\(\s*['"](.+?)['"]\s*\)/);
+                    if (pm) output.push(pm[1]);
+                    else {
+                        var vm = line.match(/^print\s*\(\s*(\w+)\s*\)/);
+                        if (vm) {
+                            var v = vm[1];
+                            if (v === 'spark.version') output.push('3.5.0');
+                            else if (currentDf && currentDf.columns) output.push(String(currentDf.columns));
+                            else output.push(String(v));
+                        }
+                    }
+                }
+                var selectMatch = line.match(/\.select\s*\(\s*['"](\w+)['"]\s*\)/);
+                if (selectMatch && currentDf) {
+                    var colIdx = currentDf.columns ? currentDf.columns.indexOf(selectMatch[1]) : -1;
+                    if (colIdx >= 0) {
+                        var newData = currentDf.data.map(function(r) { return [r[colIdx]]; });
+                        output.push(simulateShow(newData, [selectMatch[1]], 20));
+                    }
+                }
+                var filterMatch = line.match(/\.filter\s*\(/);
+                if (filterMatch && currentDf) {
+                    output.push(simulateShow(currentDf.data.slice(0, 3), currentDf.columns, 20));
+                }
+                var joinMatch = line.match(/\.join\s*\(/);
+                if (joinMatch) {
+                    output.push(simulateShow([['1', 'Ana', '50000'], ['2', 'Luis', '60000']], ['id', 'nombre', 'salario'], 20));
+                }
+                var gbMatch = line.match(/\.groupBy\s*\(/);
+                if (gbMatch && currentDf) {
+                    var groupCol = line.match(/groupBy\s*\(\s*['"](\w+)['"]/);
+                    if (groupCol) {
+                        var grouped = {};
+                        for (var g = 0; g < currentDf.data.length; g++) {
+                            var key = currentDf.data[g][0];
+                            grouped[key] = (grouped[key] || 0) + 1;
+                        }
+                        var groupedData = Object.keys(grouped).map(function(k) { return [k, String(grouped[k])]; });
+                        output.push(simulateShow(groupedData, [groupCol[1], 'count(1)'], 20));
+                    }
+                }
+                if (line.match(/\.createOrReplaceTempView/)) {
+                    var viewName = line.match(/createOrReplaceTempView\s*\(\s*['"](\w+)['"]/);
+                    if (viewName) output.push('');
+                }
+                if (line.match(/spark\.sql\s*\(/)) {
+                    output.push(simulateShow([['Ana', '28'], ['Luis', '35']], ['nombre', 'edad'], 20));
+                }
+            }
+
+            return output.filter(function(o) { return o.length > 0; }).join('\n');
+        }
+
+        function captureStdout(pyodide, code) {
+            var lesson = lessons[currentStep];
+            if (lesson && lesson.precalculatedOutput) {
+                writeToOutput(lesson.precalculatedOutput);
+            } else {
+                var simulated = simulateSparkOutput(code);
+                if (simulated.trim()) writeToOutput(simulated);
+            }
+            pyodide.runPython('user_code = ' + JSON.stringify(code));
+            return '';
+        }
+
+        // ==================== MONACO EDITOR ====================
+        function initMonacoEditor() {
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                    value: '', language: 'python', theme: 'vs-dark',
+                    minimap: { enabled: false }, fontSize: 14, lineNumbers: 'on',
+                    scrollBeyondLastLine: false, automaticLayout: true, tabSize: 4, wordWrap: 'on'
+                });
+                window.monacoEditor = editor;
+                loadLesson(currentStep);
+            });
+        }
+
+        // ==================== LESSON MANAGEMENT ====================
+        function loadLesson(index) {
+            currentStep = index;
+            const lesson = lessons[index];
+            document.getElementById('lessonTitle').textContent = `Leccion ${lesson.id}: ${lesson.title}`;
+            document.getElementById('instructionsContent').innerHTML = lesson.instructions;
+            document.getElementById('stepInfo').textContent = `Leccion ${lesson.id} de ${lessons.length}`;
+            if (editor) { editor.setValue(lesson.seedCode); }
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Haz clic en "Ejecutar Test (Ctrl+Enter)" o presiona Ctrl+Enter para validar tu codigo.</div>';
+            document.getElementById('testCount').textContent = '0/0 tests pasados';
+            clearOutput();
+            if (window.innerWidth <= 600) { switchTab('instructions'); }
+            updateStepDots();
+        }
+
+        function updateStepDots() {
+            const nav = document.getElementById('stepNav');
+            nav.innerHTML = '';
+            lessons.forEach((lesson, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot' + (i === currentStep ? ' active' : '') + (completedSteps.includes(i) ? ' completed' : '');
+                dot.textContent = lesson.id;
+                dot.onclick = () => loadLesson(i);
+                nav.appendChild(dot);
+            });
+        }
+
+        function resetCode() {
+            if (editor) { editor.setValue(lessons[currentStep].seedCode); }
+            clearOutput();
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Codigo reiniciado.</div>';
+        }
+
+        function showSolution() {
+            if (editor) { editor.setValue(lessons[currentStep].solution); }
+        }
+
+        // ==================== TEST EXECUTION ====================
+        async function runTests() {
+            if (!pyodide) {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                await initPyodide();
+            }
+            
+            const code = editor.getValue();
+            const lesson = lessons[currentStep];
+            
+            document.getElementById('testResults').innerHTML = '<div class="test-info">Ejecutando codigo y validando tests...</div>';
+            
+            try {
+                captureStdout(pyodide, code);
+                
+                let passed = 0;
+                let failed = 0;
+                let results = [];
+                
+                for (const test of lesson.tests) {
+                        try {
+                            if (test.code) { pyodide.runPython(test.code); }
+                            const isValid = pyodide.runPython(test.validation);
+                            if (isValid) { passed++; results.push(`<div class="test-pass">&#10004; ${test.name}</div>`); }
+                            else { failed++; results.push(`<div class="test-fail">&#10008; ${test.name}: ${test.error}</div>`); }
+                        } catch (error) { failed++; results.push(`<div class="test-fail">&#10008; ${test.name}: ${error.message}</div>`); }
+                    }
+                    
+                    document.getElementById('testCount').textContent = `${passed}/${lesson.tests.length} tests pasados`;
+                    document.getElementById('testResults').innerHTML = results.join('');
+                    
+                    if (passed === lesson.tests.length) {
+                        if (!completedSteps.includes(currentStep)) {
+                            completedSteps.push(currentStep);
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(completedSteps));
+                        }
+                        document.getElementById('nextLessonBtn').disabled = false;
+                        if (lesson.successMessage) {
+                            writeToOutput('\u2705 ' + lesson.successMessage);
+                        }
+                        var btn = document.getElementById('nextLessonBtn');
+                        if (currentStep < lessons.length - 1) {
+                            btn.innerHTML = 'Siguiente leccion &rarr;';
+                            results.push(`<div class="test-info" style="margin-top: 10px;">&#127881; Todos los tests pasaron! Haz clic en "Siguiente leccion" para continuar.</div>`);
+                            document.getElementById('testResults').innerHTML = results.join('');
+                        } else {
+                            btn.innerHTML = 'Siguiente desafio &rarr;';
+                            results.push(`<div class="test-info" style="margin-top: 10px;">&#127942; Felicidades! Has completado todas las lecciones del nivel Avanzado. Continua al Desafio!</div>`);
+                            document.getElementById('testResults').innerHTML = results.join('');
+                        }
+                    }
+            } catch (error) {
+                document.getElementById('testResults').innerHTML = `<div class="test-fail">Error: ${error.message}</div>`;
+            }
+        }
+
+        function goToNextLesson() {
+            if (currentStep < lessons.length - 1) {
+                window.location.href = `lecciones_avanzado.html?lesson=${currentStep + 1}`;
+            } else {
+                window.location.href = `desafio.html?lesson=0`;
+            }
+        }
+
+        // ==================== MODAL ====================
+        function closeModal() { document.getElementById('errorModal').classList.remove('active'); }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runTests(); }
+            if (e.ctrlKey && e.key === 's') { e.preventDefault(); showSolution(); }
+            if (e.key === 'Escape') { closeGuide(); }
+        });
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            completedSteps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            initPyodide();
+            initMonacoEditor();
+        });
+    </script>
+</body>
+</html>
